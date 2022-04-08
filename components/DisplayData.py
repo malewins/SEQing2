@@ -1,7 +1,6 @@
 from dash import dcc, html, Input, Output
 import dash_bio
 
-import files.File
 from AppInterface import app
 
 
@@ -9,7 +8,6 @@ class Display:
 
     def __init__(self, component):
         self.iclip = component
-        self.genome = component.get_current_genome_file()
         self.gen = ""
 
         @app.callback(
@@ -37,7 +35,8 @@ class Display:
             Output('information-output', 'children'),
             Input('information', 'value'))
         def update_output(value):
-            return '# The information is: \n{}'.format(str(self.gen))
+            # TODO: Fill information of the gene
+            return '# The information is: \n{}'.format(str(self.gen), value)
 
     def clustergram(self):
         """This method provides the Gene-Selection."""
@@ -56,7 +55,7 @@ class Display:
         This method provides a section, where a gen description takes place
         """
         return html.Div(children=[
-            dcc.Textarea(value='''# The information about the gen: \n'''+str(self.gen),
+            dcc.Textarea(value='''# The information about the gen: \n''' + str(self.gen),
                          id='information'),
             html.Div(id='information-output')
         ])
@@ -66,5 +65,3 @@ class Display:
             self.gene_annotation_area(),
             self.clustergram()
         ])
-
-

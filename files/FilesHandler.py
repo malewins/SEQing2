@@ -115,6 +115,8 @@ class FileHandler(FileHandlerInterface):
 
     def get_sequencing_files(self):
         """
+        Return a list of all possible sequencing files.
+
         :return: list[FileInput] Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG"""
         # TODO: Implement BED6-File as sequence-File
         return [sequence_file.get_filename() for sequence_file in self.all_files if
@@ -151,14 +153,11 @@ class FileHandler(FileHandlerInterface):
         """
         only_files = [f for f in listdir(path) if isfile(join(path, f))]
         for file in only_files:
-            zip_type = ""
-            header_present = False
             try:
                 file_type = self.__get_filetype(file)
                 if file_type != File_type.Filetype.NONE and file.find('.gz') == -1:  # ignore zipped files
                     the_file = FileInput(file.__str__(), self.path_of_files / file.__str__(),
-                                         file_type,
-                                         False, zip_type, header_present, self.SERVER_FOLDER + file.__str__())
+                                         file_type, self.SERVER_FOLDER + file.__str__())
                     self.all_files.append(the_file)
             except PermissionError:
                 raise OSError

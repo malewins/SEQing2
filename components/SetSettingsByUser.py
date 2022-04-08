@@ -10,9 +10,7 @@ Line = {'textAlign': 'left', 'height': '15px', 'width': '3000px', 'backgroundCol
 
 class Settings:
 
-    def __init__(self, file_options, component_handler, annotations,
-                 sequencing):
-        self.file_options = file_options
+    def __init__(self, component_handler, annotations, sequencing):
         self.handler = component_handler
         self.annotations = annotations
         self.sequencing = sequencing
@@ -142,8 +140,6 @@ class Settings:
                          html.Div(id='expression-chooser')])
 
     def get_button_interaction(self):
-        print('genome')
-        print(self.__is_set_sequence())
         if self.__is_set_sequence():
             return html.Div([
                 dcc.ConfirmDialogProvider(children=html.Button('Submit', n_clicks=0),

@@ -1,13 +1,11 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
-import dash
-import dash_bio
 from dash.dependencies import Input, Output
 from dash import dcc
 from dash import html
 # Static Default style
-from flask import send_from_directory, Flask
+from flask import send_from_directory
 from components import DisplayData, SetSettingsByUser
 from AppInterface import app, server
 
@@ -26,13 +24,11 @@ class AppHandler:
 
     def __init__(self, absolut_dir_path, component_handler, port):
         self.dir = absolut_dir_path
-        self.file_option = component_handler.get_file_options()
         self.current_gene_options = component_handler.get_current_gene_dict()
         self.annotations = component_handler.get_annotations()
         self.sequencing = component_handler.get_sequencing_files()
         self.port = port
-        self.settings = SetSettingsByUser.Settings(self.file_option,
-                                                   component_handler,
+        self.settings = SetSettingsByUser.Settings(component_handler,
                                                    self.annotations,
                                                    self.sequencing)
         self.display = DisplayData.Display(component_handler)
