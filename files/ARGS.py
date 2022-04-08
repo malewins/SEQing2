@@ -50,7 +50,9 @@ class Args:
                                  type=Path)
         self.parser.add_argument('-web', dest='web-application',
                                  help='''If you want to start the application as a web-application.''')
-
+        # add Port as Parameter
+        self.parser.add_argument('-port', dest='port', help='''Choose a port on which the app should run. 
+                                For example -port 8050.''', type=int, default=8050)
         self.parser.parse_args()
 
     def has_option(self, option):
@@ -68,7 +70,6 @@ class Args:
         @:return directory path"""
 
         # should throw exception if to many arguments are
-        # If directory is empty this should be checked
 
         args = self.parser.parse_args()
 
@@ -82,9 +83,10 @@ class Args:
 
     @staticmethod
     def __validate_directory(path):
-        """Should be a private method, which checks the directory
-        @:param path: take a (absolute) path
-        @:return the path of the directory"""
+        """
+        Should be a private method, which checks the directory
+        :param path: take a (absolute) path
+        :return: the path of the directory"""
         if not path.is_dir():
             pprint("Not a directory")
             raise NotADirectoryError
@@ -92,6 +94,10 @@ class Args:
             pprint("Not accessible")
             raise PermissionError
         return path
+
+    def get_port(self):
+        """Return the port."""
+        return self.parser.parse_args().port
 
 
 '''def load_iclip_data(binding_site_raw_path):

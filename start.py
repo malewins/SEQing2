@@ -3,17 +3,17 @@
 import pathlib
 
 import app
-from components import iclip
-import files.FilesHandler
+from components import ComponentHandler
+import files.FilesHandler as fileHandler
 from files import ARGS
 
 
 def __check_args(args):
+    port = args.get_port()
     if args.has_option('dir'):
-        handler = files.FilesHandler.FileHandler(args.get_directory())
-        iclip_handler = iclip.IClipHandler(handler)
-        app.AppHandler(pathlib.Path.absolute(args.get_directory()), iclip_handler)
-    # TODO: further argument check
+        handler = fileHandler.FileHandler(args.get_directory())
+        iclip_handler = ComponentHandler.Component(handler)
+        app.AppHandler(pathlib.Path.absolute(args.get_directory()), iclip_handler, port)
 
 
 if __name__ == '__main__':
