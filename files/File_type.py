@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 
 class Filetype(Enum):
-    """Enum which shows the possible File-Type"""
+    """Enum which shows the File-Type"""
     FASTA = auto()
     GTF = auto()
     BED = auto()
@@ -13,4 +13,5 @@ class Filetype(Enum):
     bigWIG = auto()
     TSV = auto()
     CSV = auto()
+    SF = auto()
     NONE = auto()

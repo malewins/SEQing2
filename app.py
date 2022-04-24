@@ -17,20 +17,17 @@ colors = {
 
 class AppHandler:
     """
-    App handler, which handles the app
-    @:param absolut_dir_path: takes an absolut path to a directory
-    @:param iclip: need the iclip handler to interact with
+    App handler, which handles the app.
+
+    :param absolut_dir_path: takes an absolut path to a directory.
+    :param component_handler: need the component handler to interact with the filehandler.
+    :param port: takes a port as int.
     """
 
     def __init__(self, absolut_dir_path, component_handler, port):
-        self.dir = absolut_dir_path
         self.current_gene_options = component_handler.get_current_gene_dict()
-        self.annotations = component_handler.get_annotations()
-        self.sequencing = component_handler.get_sequencing_files()
         self.port = port
-        self.settings = SetSettingsByUser.Settings(component_handler,
-                                                   self.annotations,
-                                                   self.sequencing)
+        self.settings = SetSettingsByUser.Settings(component_handler)
         self.display = DisplayData.Display(component_handler)
 
         @server.route('/tracks/<path:path>')
@@ -41,6 +38,7 @@ class AppHandler:
         @app.callback(Output('page-content', 'children'),
                       Input('url', 'pathname'))
         def display_page(pathname):
+            """Handles the different pages to display."""
             if pathname == '/page1':
                 return self.display.layout()
             else:
@@ -63,4 +61,10 @@ class AppHandler:
             html.Div(id='page-content')])
 
     def get_layout(self):
+        """
+        Return the general layout for the webpage.
+
+        :return: the different webpages
+        :rtype; html
+        """
         return html.Div(style={'backgroundColor': colors['background']}, children=[self.pages()])

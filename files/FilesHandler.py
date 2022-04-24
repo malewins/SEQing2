@@ -1,27 +1,36 @@
+import csv
 from os import listdir
 from os.path import isfile, join
 from collections import deque
+from pprint import pprint
+
+import pandas
+import logging
+from pybedtools import BedTool
 
 from files import File_type
 from files.File import FileInput
 from files.FileHandlerInterface import FileHandlerInterface
-from pybedtools import BedTool
 
 import re
 
 
 class FileHandler(FileHandlerInterface):
+
     """
     File handler takes a path and creates an individual File for each Track for later identification.
 
-    :param path: takes a directory/File
+    :param args: ARGS.Args takes the object Args
     """
 
-    def __init__(self, path):
-        self.all_files = deque()
-        self.path_of_files = path
+    def __init__(self, args):
         self.SERVER_FOLDER = 'tracks/'
-        self.load_all_files(path)
+        self.all_files = deque()
+        self.args = args
+        self.path_of_files = args.get_absolut_path()
+        self.gene_description = []
+        self.load_all_files(args.get_directory())
+        self.logger = logging.getLogger(__name__)
 
     def get_files_as_dict(self):
         """
@@ -59,11 +68,10 @@ class FileHandler(FileHandlerInterface):
         specific_files = []
         if not filename:
             # This option is only if the user starts the app without specifying, which file to display
-            # TODO: need to add BED6
             return [sequence_file.get_general_dict(color) for sequence_file in self.all_files if
                     sequence_file.get_filetype() in [File_type.Filetype.BAM,
                                                      File_type.Filetype.BEDGRAPH,
-                                                     File_type.Filetype.WIG,
+                                                     # File_type.Filetype.WIG,
                                                      File_type.Filetype.bigWIG]]
         for name in filename:
             for specif_file in self.all_files:
@@ -94,19 +102,24 @@ class FileHandler(FileHandlerInterface):
         """
         Return a dict.
 
-        :param  annotation_files: FileInput with datatype(BED6/12,GFF,GTF) as parameter
+        :param  annotation_files: FileInput with datatype(BED6/12,GFF,GTF,CSV,TSV) as parameter
         :return: a dict to annotate the genes
         """
-        if annotation_files != "":
-            return annotation_files.get_dict_for_annotation()
-        # This is used if the user did not chose any annotation file
-        return self.get_annotations()[0].get_dict_for_annotation()
+        # First is always a CSV or TSV file
+        if len(annotation_files) == 2:
+            return self.__create_dict_for_annotation(annotation_files)
+
+        # This is used if the user did not choose any annotation file
+        if len(self.get_annotations()) != 0:
+            return self.get_annotations()[0].get_dict_for_annotation("")
+        return None
 
     def get_annotations(self):
         """
         Returns a list of possible annotation files.
 
-        :return: list[FileInput] files like GTF, GFF, BED12 as a list
+        :return: Files like GTF, GFF, BED12 as a list
+        :rtype: list[FileInput]
         """
         return [file for file in self.all_files if
                 file.get_filetype() in [File_type.Filetype.GFF,
@@ -117,21 +130,45 @@ class FileHandler(FileHandlerInterface):
         """
         Return a list of all possible sequencing files.
 
-        :return: list[FileInput] Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG"""
+        :return: Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG
+        :rtype: list[FileInput]
+        """
         # TODO: Implement BED6-File as sequence-File
         return [sequence_file.get_filename() for sequence_file in self.all_files if
                 sequence_file.get_filetype() in [File_type.Filetype.BAM,
                                                  File_type.Filetype.BEDGRAPH,
-                                                 File_type.Filetype.WIG,
+                                                 # File_type.Filetype.WIG,
                                                  File_type.Filetype.bigWIG]]
 
     def get_genome_files(self):
         """
         Return a list of type FASTA.
 
-        :return: list[FileInput] Files like FA, FAS"""
+        :return: Files like FA, FAS
+        :rtype: list[FileInput]
+        """
         return [genome.get_filename() for genome in self.all_files if
                 genome.get_filetype() is File_type.Filetype.FASTA]
+
+    def get_expressions(self):
+        """
+        Return a list of type CSV-files, which relegate to a folder of sf-files.
+
+        :return: CSV-files
+        :rtype: list[FileInput]
+        """
+        return [expression.get_filename() for expression in self.all_files if
+                expression.get_filetype() is File_type.Filetype.SF]
+
+    def get_descriptions(self):
+        """
+        Return a list of type CSV-files.
+
+        :return: CSV-files
+        :rtype: list[FileInput]
+        """
+        return [expression.get_filename() for expression in self.all_files if
+                expression.get_filetype() is File_type.Filetype.CSV]
 
     @staticmethod
     def get_locus(genome_file, gen):
@@ -144,6 +181,19 @@ class FileHandler(FileHandlerInterface):
         """
         return genome_file.get_locus(gen)
 
+    def get_gene_description(self, value):
+        pass
+
+    @staticmethod
+    def get_expression_figure(file):
+        """
+        Return an expression linegraph with error bars.
+
+        :return: graph
+        :rtype: go.Figure
+        """
+        return file.get_graph()
+
     def load_all_files(self, path):
         """
         Load all Files into the FilesHandler.
@@ -151,18 +201,25 @@ class FileHandler(FileHandlerInterface):
         :param path: need a path to the directory/File
         :raises PermissionError: If the directory is not accessible
         """
-        only_files = [f for f in listdir(path) if isfile(join(path, f))]
+        if self.args.has_option('dir'):
+            only_files = [f for f in listdir(path) if isfile(join(path, f))]
+        else:
+            only_files = self.args.get_files()
         for file in only_files:
             try:
-                file_type = self.__get_filetype(file)
-                if file_type != File_type.Filetype.NONE and file.find('.gz') == -1:  # ignore zipped files
-                    the_file = FileInput(file.__str__(), self.path_of_files / file.__str__(),
-                                         file_type, self.SERVER_FOLDER + file.__str__())
+                file_name = self.__remove_zone_identifier(file.__str__())
+                file_path = str(self.path_of_files) + '/' + file_name
+                file_type = self.__get_filetype(file_path)
+
+                # Check if Filetype was found and ignores zipped files
+                if file_type != File_type.Filetype.NONE and file.find('.gz') == -1:
+                    the_file = FileInput(file_name, file_path, file_type,
+                                         self.SERVER_FOLDER + file_name)
                     self.all_files.append(the_file)
             except PermissionError:
                 raise OSError
 
-            # TODO: handle :ZONEIdentifier, zip, tbi, fas, tsv and other file types.
+            # TODO: handle  zip, tbi, tsv and other file types.
 
     def __get_filetype(self, file):
         file_type = File_type.Filetype.NONE
@@ -183,10 +240,64 @@ class FileHandler(FileHandlerInterface):
             file_type = File_type.Filetype.WIG
         if file.find('bw') != -1:
             file_type = File_type.Filetype.bigWIG
-        # TODO: Add TSV and CSV files
+        if file.find('csv') != -1:
+            file_type = self.__check_csv(file)
+        if file.find('tsv') != -1:
+            file_type = File_type.Filetype.TSV
         return file_type
 
-    def __check_bed(self, file):
+    @staticmethod
+    def __check_csv(file):
+        # TODO: check if args has option exp and return this file(s)
+        # if self.args.has_option('exp'):
+        try:
+            with open(file, 'r') as f:
+                header = csv.Sniffer().has_header(f.read(1024))
+                if header:
+                    gene_description = pandas.read_csv(file, on_bad_lines='skip')
+                    # TODO: Check if salmon-reference files are present. Instead to check column sample
+                    if 'sample' in gene_description.columns:
+                        return File_type.Filetype.SF
+            return File_type.Filetype.CSV
+        except OSError:
+            pprint('Something went wrong while reading the file.')
+        except IndexError:
+            pprint('File has no Description.')
+        except ValueError:
+            pprint('Something is wrong with the file.')
+
+    @staticmethod
+    def __check_bed(file):
+        """
+        THis should check if it is a BED6 annotation-File or BED6 sequencing file.
+        """
         # May not needed for an extra check
-        BedTool(str(self.path_of_files) + '/' + file)
+        #        BedTool(str(self.path_of_files) + '/' + file)
         return File_type.Filetype.BED
+
+    @staticmethod
+    def __remove_zone_identifier(file):
+        return file.replace(':Zone.Identifier', '')
+
+    def __create_dict_for_annotation(self, anno_desc_files):
+        desc_file = anno_desc_files[0]
+        anno_file = anno_desc_files[1]
+        # 'ensembl_gene_id', 'description', 'external_gene_name'=names and usecols=[0,1,2]
+        # TODO: Check for header, Check description and or gene_id, check length of amount of colls
+        # Load CSV file
+        try:
+            load_csv = pandas.read_csv(desc_file.get_filepath(), compression='infer',
+                                       names=['ensembl_gene_id', 'description'], sep='\t',
+                                       usecols=[0, 1])
+            # Load Annotation-file
+            anno_file_tool = BedTool(anno_file.get_filepath())
+            # Maybe need to add larger range of genes due to gene_index.csv
+            # list_gene_names = set(load_csv['ensembl_gene_id'].tolist())
+            list_gene_desc = set(load_csv['description'].tolist())
+            gene_names = list_gene_desc.union([gene.name for gene in anno_file_tool])
+            self.gene_description = list_gene_desc.union([gene.name for gene in anno_file_tool])
+            return anno_file.get_dict_for_annotation(gene_names)
+
+        except pandas.errors.InvalidIndexError:
+            self.logger.error('Column does not match with the names or the amount.')
+            raise

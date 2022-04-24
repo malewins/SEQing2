@@ -1,14 +1,27 @@
 from dash import dcc, html, Input, Output
 import dash_bio
 
+from dash.exceptions import PreventUpdate
+
 from AppInterface import app
+
+"""This File provides settings to display the specific data and not all data at once. This has a performance reason."""
+Line = {'textAlign': 'left', 'height': '1px', 'width': '1500px', 'backgroundColor': '#161618'}
+center = {'textAlign': 'center'}
 
 
 class Display:
+    """ Displays the data on the webpage.
+
+    :param component: ComponentHandler.Component takes the object Component
+    """
 
     def __init__(self, component):
         self.iclip = component
         self.gen = ""
+        self.selected_files = component.get_selected_files()
+        self.location = ""
+        self.fig = component.get_figure()
 
         @app.callback(
             Output('igv', 'children'),
@@ -19,24 +32,21 @@ class Display:
             return html.Div([
                 dash_bio.Igv(
                     id='locus-igv',
-                    locus=component.get_locus(value),
-                    reference=dict(
-                        id="A.thaliana (TAIR 10)",
-                        name="A. thaliana (TAIR 10)",
-                        # fastaURL="tracks/TAIR10_chr_all_noYWMKSRD.fa",
-                        fastaURL=self.iclip.get_current_genome_file().get_serverpath(),
-                        indexURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_chr_all.fas.fai",
-                        aliasURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_alias.tab",
-                        tracks=component.get_selected_files()
-                    )
+                    locus=value,
+                    reference=self.get_references()
                 )])
 
         @app.callback(
             Output('information-output', 'children'),
-            Input('information', 'value'))
+            Input('Gen-select', 'value'))
         def update_output(value):
             # TODO: Fill information of the gene
-            return '# The information is: \n{}'.format(str(self.gen), value)
+            if not value:
+                raise PreventUpdate
+            # print([o for o in self.iclip.get_current_gene_dict() if value in o["value"]])
+
+            self.gen = value
+            return '# The information is: \n{}'.format(component.get_description(value))
 
     def clustergram(self):
         """This method provides the Gene-Selection."""
@@ -50,9 +60,24 @@ class Display:
             html.Div(id='select-gen')
         ])
 
+    def get_references(self):
+        """
+        Return a dict as references for the igv-component.
+
+        :return: reference dict
+        :rtype: dict
+        """
+        return dict(id="A.thaliana (TAIR 10)",
+                    name="A. thaliana (TAIR 10)",
+                    fastaURL=self.iclip.get_current_genome_file().get_serverpath(),
+                    indexURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_chr_all.fas.fai",
+                    aliasURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_alias.tab",
+                    tracks=self.iclip.get_selected_files()
+                    )
+
     def gene_annotation_area(self):
         """
-        This method provides a section, where a gen description takes place
+        This method provides a section, where a gen description takes place.
         """
         return html.Div(children=[
             dcc.Textarea(value='''# The information about the gen: \n''' + str(self.gen),
@@ -60,8 +85,27 @@ class Display:
             html.Div(id='information-output')
         ])
 
+    def set_expression_graph(self):
+        """
+        This method provides a section, where the expression graph takes place.
+        """
+        # if self.iclip.get_figure():
+        return html.Div(children=[
+            html.Hr(style=Line),
+            html.H2('Expression-Graph', style=center),
+            dcc.Graph(figure=self.iclip.get_figure())
+        ])
+        # return ""
+
     def layout(self):
+        """
+        Returns the layout of /page1.
+
+        :return: html layout.
+        :rtype: html
+        """
         return html.Div(children=[
             self.gene_annotation_area(),
-            self.clustergram()
+            self.clustergram(),
+            self.set_expression_graph()
         ])

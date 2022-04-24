@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from pprint import pprint
+import plotly.graph_objects as go
+
 
 class Component:
     """
@@ -15,18 +18,20 @@ class Component:
         self.sequence_files = []
         self.annotation_files = ""
         self.expression_files = []
+        self.description_files = []
         self.set_genome("")
 
     def set_genome(self, filename):
         """
-        Set s specific genome.
+        Set s specific genome. This has to be loaded first,
+         to return a genome for the igv-component.
 
         :param filename: str filename of existing files.
         """
         self.genome = self.handler.get_genome(filename)
         if filename != "" and filename is not None:
             self.current_genome_file = self.handler.get_specific_file(filename)
-        else:
+        if len(self.genome) != 0:
             self.current_genome_file = self.genome[0]
 
     def set_sequence_file(self, filename):
@@ -46,8 +51,10 @@ class Component:
         """
         if filename != "" and filename is not None:
             self.annotation_files = self.handler.get_specific_file(filename)
-        else:
+        if len(self.handler.get_annotations()) != 0:
             self.annotation_files = self.handler.get_annotations()[0]
+        else:
+            pprint('There exist no annotation File.')
 
     def set_expression_file(self, filename):
         """
@@ -55,8 +62,21 @@ class Component:
 
         :param filename: str filename of existing files.
         """
-        color = 'rgb(22, 22, 24)'
-        self.expression_files = self.handler.get_specific_files_as_dict(filename, color)
+        if filename != "" and filename is not None:
+            self.expression_files = [self.handler.get_specific_file(filename)]
+
+    def set_description_files(self, filename):
+        """
+        Set a given description file.
+
+        :param filename: str filename of existing files.
+        """
+        if filename != "" and filename is not None:
+            self.description_files = []
+            for file in filename:
+                self.description_files.append(self.handler.get_specific_file(file))
+        if len(self.handler.get_descriptions()) != 0 and filename == "":
+            self.description_files = self.handler.get_descriptions()
 
     def get_current_gene_dict(self):
         """
@@ -65,7 +85,10 @@ class Component:
         :return: Return a dict as json object for the dropdown menu.
         :rtype: json-object as dict
         """
-        if self.annotation_files != "":
+        if self.description_files:
+            return self.handler.get_gene_dict(self.description_files)
+            # TODO: check correct path, what happens, if annotation-file is missing.
+        if self.annotation_files != "" and self.description_files:
             return self.handler.get_gene_dict(self.annotation_files)
         return self.handler.get_gene_dict("")
 
@@ -102,8 +125,8 @@ class Component:
         :return: Returns a list of selected sequencing files as json-object for the igv-component.
         :rtype: list[json-object]
         """
-        if len(self.sequence_files) > 0:
-            return self.sequence_files
+        if len(self.sequence_files) > 0 and self.annotation_files != "":
+            return self.sequence_files + [self.annotation_files.get_general_dict('238,77,46')]
         return self.handler.get_specific_files_as_dict("", color='238,77,46')
 
     def get_genome(self):
@@ -124,3 +147,45 @@ class Component:
         if self.current_genome_file != "":
             return self.current_genome_file
         return NameError("File is empty")
+
+    def get_expression_files(self):
+        """
+        Return the chosen experiment file. If there was only one, then this will be returned.
+
+        :return: current experiment file
+        :rtype: FileInput
+        """
+        # if not self.expression_files:
+        #   return None
+        return self.handler.get_expressions()
+
+    def get_description_files(self):
+        """
+        Return the chosen description file. If there was only one, then this will be returned.
+
+        :return: current experiment file
+        :rtype: FileInput
+        """
+        return self.handler.get_descriptions()
+
+    def get_description(self, value):
+        """
+        Return a description, if it exists.
+
+        :return: gene description
+        :rtype: str
+        """
+        if value is not None:
+            return self.handler.get_gene_description(value)
+        return ""
+
+    def get_figure(self):
+        """
+        Return an expression linegraph with error bars.
+
+        :return: graph
+        :rtype: go.Figure
+        """
+        if self.expression_files:
+            return self.handler.get_expression_figure(self.expression_files[0])
+        return go.Figure()
