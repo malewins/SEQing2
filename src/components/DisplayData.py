@@ -3,7 +3,7 @@ import dash_bio
 
 from dash.exceptions import PreventUpdate
 
-from AppInterface import app
+from src.app.AppInterface import app
 
 """This File provides settings to display the specific data and not all data at once. This has a performance reason."""
 Line = {'textAlign': 'left', 'height': '1px', 'width': '1500px', 'backgroundColor': '#161618'}
@@ -21,7 +21,7 @@ class Display:
         self.gen = ""
         self.selected_files = component.get_selected_files()
         self.location = ""
-        self.fig = component.get_figure()
+        self.fig = component.get_figure("")
 
         @app.callback(
             Output('igv', 'children'),
@@ -29,6 +29,7 @@ class Display:
         def return_igv(value):
             """Return the IGV component with the selected genome."""
             self.gen = value
+            component.set_gen_value(value)
             return html.Div([
                 dash_bio.Igv(
                     id='locus-igv',
@@ -43,10 +44,16 @@ class Display:
             # TODO: Fill information of the gene
             if not value:
                 raise PreventUpdate
-            # print([o for o in self.iclip.get_current_gene_dict() if value in o["value"]])
-
             self.gen = value
             return '# The information is: \n{}'.format(component.get_description(value))
+
+        @app.callback(
+            Output('graph', 'children'),
+            Input('Gen-select', 'value'))
+        def update_graph(value):
+            if not value:
+                raise PreventUpdate
+            return html.Div(dcc.Graph(figure=self.iclip.get_figure(value)), id='plot')
 
     def clustergram(self):
         """This method provides the Gene-Selection."""
@@ -85,17 +92,16 @@ class Display:
             html.Div(id='information-output')
         ])
 
-    def set_expression_graph(self):
+    @staticmethod
+    def set_expression_graph():
         """
         This method provides a section, where the expression graph takes place.
         """
-        # if self.iclip.get_figure():
         return html.Div(children=[
             html.Hr(style=Line),
             html.H2('Expression-Graph', style=center),
-            dcc.Graph(figure=self.iclip.get_figure())
+            dcc.Loading(id='graph')
         ])
-        # return ""
 
     def layout(self):
         """

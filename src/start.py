@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 import pathlib
 
-import app
+from app import app
 from components import ComponentHandler
-import files.FilesHandler as fileHandler
-from files import ARGS
+from input_files import ARGS, FilesHandler
 
 
 def __start_application(args):
-    handler = fileHandler.FileHandler(args)
+    handler = FilesHandler.FileHandler(args)
     component_handler = ComponentHandler.Component(handler)
     app.AppHandler(pathlib.Path.absolute(args.get_absolut_path()), component_handler, args.get_port())
 

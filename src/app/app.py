@@ -6,8 +6,8 @@ from dash import dcc
 from dash import html
 # Static Default style
 from flask import send_from_directory
-from components import DisplayData, SetSettingsByUser
-from AppInterface import app, server
+from src.components import DisplayData, SetSettingsByUser
+from src.app.AppInterface import app, server
 
 colors = {
     'background': '#f2f5f4',
@@ -32,7 +32,7 @@ class AppHandler:
 
         @server.route('/tracks/<path:path>')
         def data(path):
-            """Evoke that the files are available via a server"""
+            """Evoke that the input_files are available via a server"""
             return send_from_directory(absolut_dir_path, path)
 
         @app.callback(Output('page-content', 'children'),
@@ -49,7 +49,7 @@ class AppHandler:
     def runapp(self):
         """This runs the app on the given Port"""
         app.layout = self.get_layout()
-        # This is needed, because callbacks are also called in other files.
+        # This is needed, because callbacks are also called in other input_files.
         app.config.suppress_callback_exceptions = True
         app.run_server(debug=True, port=self.port)
 
@@ -67,4 +67,5 @@ class AppHandler:
         :return: the different webpages
         :rtype; html
         """
-        return html.Div(style={'backgroundColor': colors['background']}, children=[self.pages()])
+        return html.Div(style={'backgroundColor': colors['background']},
+                        children=[dcc.Loading(self.pages(), type='circle')])

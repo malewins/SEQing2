@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL input_files
 __pycache__/
 
 # Distribution / packaging
@@ -24,7 +24,7 @@ MANIFEST
 .idea/
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
+#  Usually these input_files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
@@ -84,3 +84,4 @@ venv.bak/
 data/
 samples/
 docs/
+test/

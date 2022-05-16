@@ -13,6 +13,6 @@ class FileHandlerInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def load_all_files(self, path):
-        """Load in all files of a folder"""
+        """Load in all input_files of a folder"""
         raise NotImplementedError
 

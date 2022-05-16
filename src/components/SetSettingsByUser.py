@@ -2,8 +2,8 @@ from pathlib import Path
 
 from dash import dcc, html, Input, Output
 
-import files.File
-from AppInterface import app
+from src.input_files import File
+from src.app.AppInterface import app
 import base64
 
 """This File provides settings to display the specific data and not all data at once. This has a performance reason."""
@@ -31,7 +31,7 @@ class Settings:
             Output('choose-annotation', 'children'),
             Input('annotation', 'value'))
         def set_and_display_annotation_file(value):
-            """Set the chosen annotation files.
+            """Set the chosen annotation input_files.
             Displays for the user the selected."""
             component_handler.set_annotation_file(value)
             return f'You have selected {value}'
@@ -48,8 +48,8 @@ class Settings:
             Output('sequence', 'children'),
             Input('data', 'value'))
         def set_and_display_chosen_file(value):
-            """Set the sequence files.
-            Displays for the user the selected files."""
+            """Set the sequence input_files.
+            Displays for the user the selected input_files."""
             component_handler.set_sequence_file(value)
             if value is not None:
                 self.set_sequence = True
@@ -60,8 +60,8 @@ class Settings:
             Output('expression-chooser', 'children'),
             Input('expression', 'value'))
         def set_and_display_expression_file(value):
-            """Set the expression files.
-            Displays for the user the selected files."""
+            """Set the expression input_files.
+            Displays for the user the selected input_files."""
             component_handler.set_expression_file(value)
             return f'You have selected {value}'
 
@@ -87,7 +87,7 @@ class Settings:
 
     @staticmethod
     def __get_img():
-        image_filename = Path('Seqing.png').resolve()  # current place of image
+        image_filename = Path('SEQing.png').resolve()  # current place of image
         encoded_image = base64.b64encode(open(image_filename, 'rb').read())
         return html.Div(style={'textAlign': 'center'}, children=[
             html.Img(src='data:image/png;base64,{}'.format(encoded_image.decode()),
@@ -95,7 +95,7 @@ class Settings:
 
     def __get_annotations(self):
         if len(self.annotations) >= 2:
-            return 'Annotation-files'
+            return 'Annotation-input_files'
         return 'Annotation-file'
 
     def __get_annotation_file_options(self):
@@ -133,7 +133,7 @@ class Settings:
 
     def __get_sequencing_annotation(self):
         if len(self.sequencing) >= 2:
-            return 'Data-files'
+            return 'Data-input_files'
         return 'Data-file'
 
     def __get_display_sequence_options(self):
@@ -150,7 +150,7 @@ class Settings:
     def __get_genome_options(self):
         if not self.genome:
             raise NameError('There was no FASTA-File found.')
-        if type(self.genome) is files.File.FileInput:
+        if type(self.genome) is File.FileInput:
             return html.Div([
                 html.Div(children=[
                     html.Hr(style=Line),
@@ -170,7 +170,7 @@ class Settings:
         return html.Div([
             html.Div(children=[
                 html.Hr(style=Line),
-                html.H2('Genome-files', style={'textAlign': 'center'}),
+                html.H2('Genome-input_files', style={'textAlign': 'center'}),
                 dcc.RadioItems(options={f'{i.get_filename()}': f'{i.get_filename()}' for i in self.genome},
                                value=self.genome[0].get_filename(),  # Set first value
                                id='genome'),
@@ -182,7 +182,7 @@ class Settings:
         if not self.expression:
             return 'Nothing here'
         if len(self.expression) > 1:
-            return 'Expression-files'
+            return 'Expression-input_files'
         return 'Expression-file'
 
     def __get_display_expression_options(self):
@@ -212,7 +212,7 @@ class Settings:
 
     def get_layout_for_settings(self):
         """
-        Return the layout of the settings from which the user can choose its files.
+        Return the layout of the settings from which the user can choose its input_files.
 
         :return: Layout of Settings
         :rtype: html

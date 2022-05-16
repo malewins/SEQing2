@@ -19,6 +19,7 @@ class Component:
         self.annotation_files = ""
         self.expression_files = []
         self.description_files = []
+        self.gen = ""
         self.set_genome("")
 
     def set_genome(self, filename):
@@ -26,7 +27,7 @@ class Component:
         Set s specific genome. This has to be loaded first,
          to return a genome for the igv-component.
 
-        :param filename: str filename of existing files.
+        :param filename: str filename of existing input_files.
         """
         self.genome = self.handler.get_genome(filename)
         if filename != "" and filename is not None:
@@ -38,7 +39,7 @@ class Component:
         """
         Set a given sequence file.
 
-        :param filename: str filename of existing files.
+        :param filename: str filename of existing input_files.
         """
         color = 'rgb(0, 143, 255)'
         self.sequence_files = self.handler.get_specific_files_as_dict(filename, color)
@@ -47,7 +48,7 @@ class Component:
         """
         Set a given annotation file.
 
-        :param filename: str filename of existing files.
+        :param filename: str filename of existing input_files.
         """
         if filename != "" and filename is not None:
             self.annotation_files = self.handler.get_specific_file(filename)
@@ -60,7 +61,7 @@ class Component:
         """
         Set a given expression file.
 
-        :param filename: str filename of existing files.
+        :param filename: str filename of existing input_files.
         """
         if filename != "" and filename is not None:
             self.expression_files = [self.handler.get_specific_file(filename)]
@@ -69,7 +70,7 @@ class Component:
         """
         Set a given description file.
 
-        :param filename: str filename of existing files.
+        :param filename: str filename of existing input_files.
         """
         if filename != "" and filename is not None:
             self.description_files = []
@@ -77,6 +78,9 @@ class Component:
                 self.description_files.append(self.handler.get_specific_file(file))
         if len(self.handler.get_descriptions()) != 0 and filename == "":
             self.description_files = self.handler.get_descriptions()
+
+    def set_gen_value(self, gen):
+        self.gen = gen
 
     def get_current_gene_dict(self):
         """
@@ -112,22 +116,22 @@ class Component:
 
     def get_sequencing_files(self):
         """
-        Return all sequencing files type (BAM, BED4/6, WIG, bigWIG)
+        Return all sequencing input_files type (BAM, BED4/6, WIG, bigWIG)
 
-        :doc: files.FilesHandler.FileHandler.get_sequencing_files
+        :doc: input_files.FilesHandler.FileHandler.get_sequencing_files
         """
         return self.handler.get_sequencing_files()
 
     def get_selected_files(self):
         """
-        Return the selected files. If none is selected it returns the all file.
+        Return the selected input_files. If none is selected it returns the all file.
 
-        :return: Returns a list of selected sequencing files as json-object for the igv-component.
+        :return: Returns a list of selected sequencing input_files as json-object for the igv-component.
         :rtype: list[json-object]
         """
         if len(self.sequence_files) > 0 and self.annotation_files != "":
-            return self.sequence_files + [self.annotation_files.get_general_dict('238,77,46')]
-        return self.handler.get_specific_files_as_dict("", color='238,77,46')
+            return self.sequence_files + [self.annotation_files.get_general_dict('rgb(238,77,46)')]
+        return self.handler.get_specific_files_as_dict("", color='rgb(238,77,46)')
 
     def get_genome(self):
         """
@@ -179,13 +183,14 @@ class Component:
             return self.handler.get_gene_description(value)
         return ""
 
-    def get_figure(self):
+    def get_figure(self, gen_region):
         """
         Return an expression linegraph with error bars.
 
         :return: graph
         :rtype: go.Figure
         """
+        # TODO: Not only get first expression_files!
         if self.expression_files:
-            return self.handler.get_expression_figure(self.expression_files[0])
+            return self.handler.get_expression_figure(self.expression_files[0], gen_region)
         return go.Figure()

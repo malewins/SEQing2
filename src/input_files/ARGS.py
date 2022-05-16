@@ -22,15 +22,15 @@ class Args:
 
     def __set_argument(self):
         # File bed12 or gtf
-        self.parser.add_argument('-gen', dest='geneAnnotation',
+        self.parser.add_argument('-gen', dest='genAnnotation',
                                  help='''Files containing gene annotations in bed12, gtf or gff format,
                                   at least one such file is required for execution. 
-                                  These files should not include a header.''',  # Maybe can include header
+                                  These input_files should not include a header.''',  # Maybe can include header
                                  nargs='+', type=Path)
         # File bedgraph
         self.parser.add_argument('-bsraw', dest='bsraw', help='''Files containing iCLIP data, 
                                 in .bedgraph, wig and bigWig format.  
-                                These files should not include a header.''',
+                                These input_files should not include a header.''',
                                  nargs='+', type=Path)
 
         # File csv
@@ -43,11 +43,11 @@ class Args:
                                 of the file with filetype Salmon(.sf). E.g. WT_18, 1, Quant_WT_1.sf.''',
                                  type=Path, nargs='+')
         # File fa
-        self.parser.add_argument('-seqs', dest='fa', help='''Fa or fas files containing genomic sequences''',
+        self.parser.add_argument('-seqs', dest='fa', help='''Fa or fas input files containing genomic sequences''',
                                  type=Path, nargs='+')
 
         self.parser.add_argument('-dir', dest='dir', help='''Takes one folder, which should containing Files like:
-                                fasta-, annotation-, bedGraph-, wig-, bigWig-, gff-, gtf-, csv- and tsv-files''',
+                                fasta-, annotation-, bedGraph-, wig-, bigWig-, gff-, gtf-, csv- and tsv-input_files''',
                                  type=Path)
 
         # add Port as Parameter
@@ -65,8 +65,8 @@ class Args:
         """
         args = self.parser.parse_args()
 
-        if option == 'geneAnnotation':
-            return args.gen
+        if option == 'genAnnotation':
+            return args.genAnnotation
         if option == 'bsraw':
             return args.bsraw
         if option == 'desc':
@@ -103,7 +103,6 @@ class Args:
         if args.dir:
             directory = self.__validate_directory(args.dir)
             if len(listdir(directory)) > 0:
-                # print(directory)
                 return directory
             else:
                 sys.exit('Directory is empty')
@@ -111,7 +110,7 @@ class Args:
 
     def get_files(self):
         """
-        Return a list of input files, given by the user.
+        Return a list of input input_files, given by the user.
 
         :return: file list
         :rtype: list[path]
@@ -119,8 +118,6 @@ class Args:
         args = self.parser.parse_args()
         files = []
         if args.fa:
-            # print(args.fa)
-            # print([str(f) for f in args.fa if self.__validate_files(f)])
             return [str(f) for f in args.fa if self.__validate_files(f)]
         return files
 
@@ -133,7 +130,6 @@ class Args:
         :return: the path of the directory
         :rtype: str
         """
-        # print(Path(path).resolve())
         if not Path.exists(path):
             pprint("Path does not exist.")
             raise ValueError
@@ -147,7 +143,7 @@ class Args:
 
     @staticmethod
     def __validate_files(path):
-        # TODO: Musst be corrected
+        # TODO: Must be corrected
         # print(Path(path).resolve())
         # if not Path(aPath).exists():
         #   pprint("Path does not exist.")
@@ -168,15 +164,3 @@ class Args:
         :rtype: int
         """
         return self.parser.parse_args().port
-
-
-'''
-def load_basic_descriptions(gene_id_path):
-    gene_names = list(set().union([k for k in [i['gene_id'].tolist() for i in gene_annotations]]))
-    geneDescriptions = pandas.read_csv(gene_id_path, compression='infer',
-                                       names=['ensembl_gene_id', 'description', 'external_gene_name'], sep='\t',
-                                       usecols=[0, 1, 2])
-    # Filter for genes that are actually in the dataset
-    geneDescriptions = geneDescriptions[geneDescriptions['ensembl_gene_id'].isin(gene_names)]
-    geneDescriptions.fillna(':', inplace=True)
-'''
