@@ -91,7 +91,6 @@ class Component:
         """
         if self.description_files:
             return self.handler.get_gene_dict(self.description_files)
-            # TODO: check correct path, what happens, if annotation-file is missing.
         if self.annotation_files != "" and self.description_files:
             return self.handler.get_gene_dict(self.annotation_files)
         return self.handler.get_gene_dict("")
@@ -172,17 +171,6 @@ class Component:
         """
         return self.handler.get_descriptions()
 
-    def get_description(self, value):
-        """
-        Return a description, if it exists.
-
-        :return: gene description
-        :rtype: str
-        """
-        if value is not None:
-            return self.handler.get_gene_description(value)
-        return ""
-
     def get_figure(self, gen_region):
         """
         Return an expression linegraph with error bars.
@@ -194,3 +182,6 @@ class Component:
         if self.expression_files:
             return self.handler.get_expression_figure(self.expression_files[0], gen_region)
         return go.Figure()
+
+    def dict_is_not_set(self) -> bool:
+        return self.handler.is_dict_set()

@@ -113,23 +113,25 @@ class Settings:
         ])
 
     def __get_annotation_gene_options(self):
-        return html.Div([
-            html.Div(children=[
-                html.Hr(style=Line),
-                html.H2('Choose annotation-file and a description-file', style=center),
-                dcc.RadioItems(
-                    options={f'{i}': f'{i}' for i in self.descriptions},
-                    value=self.descriptions[0],
-                    id='desc'
-                ),
-                dcc.Dropdown(
-                    options={f'{i}': f'{i}' for i in self.annotations},
-                    value=self.annotations[0],
-                    id='descAnnotation'
-                ),
-                html.Div(id='choose-descAnnotation')
+        if self.handler.dict_is_not_set():
+            return html.Div([
+                html.Div(children=[
+                    html.Hr(style=Line),
+                    html.H2('Choose annotation-file and a description-file', style=center),
+                    dcc.RadioItems(
+                        options={f'{i}': f'{i}' for i in self.descriptions},
+                        value=self.descriptions[0],
+                        id='desc'
+                    ),
+                    dcc.Dropdown(
+                        options={f'{i}': f'{i}' for i in self.annotations},
+                        value=self.annotations[0],
+                        id='descAnnotation'
+                    ),
+                    html.Div(id='choose-descAnnotation')
+                ])
             ])
-        ])
+        return ""
 
     def __get_sequencing_annotation(self):
         if len(self.sequencing) >= 2:
@@ -190,8 +192,8 @@ class Settings:
         if self.expression:
             return html.Div([html.Hr(style=Line),
                              html.H2(label, style=center),
-                             dcc.Checklist(options={f'{i}': f'{i}' for i in self.expression},
-                                           id='expression'),
+                             dcc.RadioItems(options={f'{i}': f'{i}' for i in self.expression},
+                                            id='expression'),
                              html.Div(id='expression-chooser')])
         return ""
 

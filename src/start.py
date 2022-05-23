@@ -10,7 +10,7 @@ from input_files import ARGS, FilesHandler
 def __start_application(args):
     handler = FilesHandler.FileHandler(args)
     component_handler = ComponentHandler.Component(handler)
-    app.AppHandler(pathlib.Path.absolute(args.get_absolut_path()), component_handler, args.get_port())
+    app.AppHandler(pathlib.Path.absolute(args.get_absolut_path('dir')), component_handler, args.get_port())
 
 
 if __name__ == '__main__':

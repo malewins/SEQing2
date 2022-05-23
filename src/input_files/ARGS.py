@@ -45,11 +45,15 @@ class Args:
         # File fa
         self.parser.add_argument('-seqs', dest='fa', help='''Fa or fas input files containing genomic sequences''',
                                  type=Path, nargs='+')
-
+        # Add general dictionary with all files
         self.parser.add_argument('-dir', dest='dir', help='''Takes one folder, which should containing Files like:
                                 fasta-, annotation-, bedGraph-, wig-, bigWig-, gff-, gtf-, csv- and tsv-input_files''',
                                  type=Path)
-
+        self.parser.add_argument('-anno', dest='anno', help='''Directory that containing at least a gtf-file.
+                                For further information, please add a description.csv file. 
+                                For Bed12-File it is necessary to add an index.csv file. 
+                                It is important that description and index appear in the filename.''',
+                                 type=Path)
         # add Port as Parameter
         self.parser.add_argument('-port', dest='port', help='''Choose a port on which the app should run. 
                                 For example -port 8050.''', type=int, default=8050)
@@ -79,15 +83,16 @@ class Args:
             return args.dir
         if option == 'port':
             return args.port
+        if option == 'anno':
+            return args.anno
         return TypeError
 
-    def get_absolut_path(self):
+    def get_absolut_path(self, arg):
         parser = self.parser.parse_args()
-        if parser.dir:
+        if arg == 'dir':
             return Path(parser.dir).resolve()
-        if parser.fa:
-            for fa in parser.fa:
-                return Path(fa).resolve()
+        if arg == 'anno':
+            return Path(parser.anno).resolve()
 
     def get_directory(self):
         """
@@ -96,10 +101,7 @@ class Args:
         :return: directory path
         :rtype: str
         """
-        # should throw exception if to many arguments are present
-
         args = self.parser.parse_args()
-
         if args.dir:
             directory = self.__validate_directory(args.dir)
             if len(listdir(directory)) > 0:
@@ -107,6 +109,23 @@ class Args:
             else:
                 sys.exit('Directory is empty')
         return getcwd()
+
+    def get_annotation_directory(self):
+        """
+        Return Directory. If it is not selected it raises NameError, because an annotation file is needed.
+
+        :return: directory path
+        :rtype: str
+        :raise: NameError
+        """
+        args = self.parser.parse_args()
+        if args.anno:
+            directory = self.__validate_directory(args.anno)
+            if len(listdir(directory)) > 0:
+                return directory
+            else:
+                sys.exit('Directory is empty')
+        raise NameError('Missing annotation directory! Please add a Folder with annotation files!')
 
     def get_files(self):
         """

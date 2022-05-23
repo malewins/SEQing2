@@ -41,11 +41,10 @@ class Display:
             Output('information-output', 'children'),
             Input('Gen-select', 'value'))
         def update_output(value):
-            # TODO: Fill information of the gene
             if not value:
                 raise PreventUpdate
             self.gen = value
-            return '# The information is: \n{}'.format(component.get_description(value))
+            return 'The coordinate of the Gene is : \n{}'.format(value)
 
         @app.callback(
             Output('graph', 'children'),
@@ -87,7 +86,7 @@ class Display:
         This method provides a section, where a gen description takes place.
         """
         return html.Div(children=[
-            dcc.Textarea(value='''# The information about the gen: \n''' + str(self.gen),
+            dcc.Textarea(value='''Please select a gene.''',
                          id='information'),
             html.Div(id='information-output')
         ])
