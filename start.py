@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import pathlib
 
-from app import app
-from components import ComponentHandler
-from input_files import ARGS, FilesHandler
+from src.app import app
+from src.components import ComponentHandler
+from src.input_files import ARGS, FilesHandler
 
 
 def __start_application(args):

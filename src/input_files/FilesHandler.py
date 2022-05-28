@@ -1,12 +1,9 @@
-import csv
 from os import listdir
 from os.path import isfile, join
 from collections import deque
-from pprint import pprint
 
 from plotly import graph_objects as go
 
-import pandas
 from src.input_files.File_type import Filetype
 from src.input_files.File import FileInput
 from src.input_files.FileHandlerInterface import FileHandlerInterface
@@ -212,7 +209,8 @@ class FileHandler(FileHandlerInterface):
         if self.args.has_option('anno'):
             anno_dict_path = self.args.get_annotation_directory()
             file_path = str(self.args.get_absolut_path('anno')) + '/'
-            anno_files = [FileInput(f, file_path+f, self.__get_filetype(f)) for f in listdir(anno_dict_path) if isfile(join(anno_dict_path, f))]
+            anno_files = [FileInput(f, file_path + f, self.__get_filetype(f)) for f in listdir(anno_dict_path) if
+                          isfile(join(anno_dict_path, f))]
             if len(anno_files) < 4:
                 self.anno_file.create_dict_for_annotation(anno_files)
             else:

@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pandas
 from Bio import SeqIO
 from pyBedGraph import BedGraph
 from pybedtools import BedTool
 from src.input_files.File_type import Filetype
-from src.input_files.ColumnHeader import Header
-
-from plotly import graph_objects as go
 from logging import getLogger
 
 

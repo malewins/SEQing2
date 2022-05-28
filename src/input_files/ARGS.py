@@ -93,6 +93,7 @@ class Args:
             return Path(parser.dir).resolve()
         if arg == 'anno':
             return Path(parser.anno).resolve()
+        return None
 
     def get_directory(self):
         """
