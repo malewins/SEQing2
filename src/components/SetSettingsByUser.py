@@ -30,24 +30,16 @@ class Settings:
         @app.callback(
             Output('choose-annotation', 'children'),
             Input('annotation', 'value'))
-        def set_and_display_annotation_file(value):
+        def set_and_display_annotation_file(value) -> str:
             """Set the chosen annotation input_files.
             Displays for the user the selected."""
             component_handler.set_annotation_file(value)
             return f'You have selected {value}'
 
         @app.callback(
-            Output('choose-descAnnotation', 'children'),
-            Input('desc', 'value'),
-            Input('descAnnotation', 'value'))
-        def set_gene_description(description, annotation):
-            component_handler.set_description_files([description, annotation])
-            return f'You have selected {description, annotation}'
-
-        @app.callback(
             Output('sequence', 'children'),
             Input('data', 'value'))
-        def set_and_display_chosen_file(value):
+        def set_and_display_chosen_file(value) -> str:
             """Set the sequence input_files.
             Displays for the user the selected input_files."""
             component_handler.set_sequence_file(value)
@@ -59,7 +51,7 @@ class Settings:
         @app.callback(
             Output('expression-chooser', 'children'),
             Input('expression', 'value'))
-        def set_and_display_expression_file(value):
+        def set_and_display_expression_file(value) -> str:
             """Set the expression input_files.
             Displays for the user the selected input_files."""
             component_handler.set_expression_file(value)
@@ -68,7 +60,7 @@ class Settings:
         @app.callback(
             Output('genome-chooser', 'children'),
             Input('genome', 'value'))
-        def set_and_display_genome(value):
+        def set_and_display_genome(value) -> str:
             """Set the genome file.
             Displays for the user the selected file."""
             component_handler.set_genome(value)
@@ -77,7 +69,7 @@ class Settings:
         @app.callback(
             Output('output-danger', 'children'),
             Input('confirm-danger', 'submit_n_clicks'))
-        def update_output(submit_n_clicks):
+        def update_output(submit_n_clicks) -> dcc.Location:
             """Check's if the user has selected a sequence file.
             If not, it pops up a warning message."""
             # Button has to be set here to confirm that the genome was set
@@ -86,19 +78,19 @@ class Settings:
                 return dcc.Location(id='between-venus-and-mars', href='/page1', refresh=True)
 
     @staticmethod
-    def __get_img():
+    def __get_img() -> html:
         image_filename = Path('SEQing.png').resolve()  # current place of image
         encoded_image = base64.b64encode(open(image_filename, 'rb').read())
         return html.Div(style={'textAlign': 'center'}, children=[
             html.Img(src='data:image/png;base64,{}'.format(encoded_image.decode()),
                      style={'width': '350px', 'height': '100px'})])
 
-    def __get_annotations(self):
+    def __get_annotations(self) -> str:
         if len(self.annotations) >= 2:
             return 'Annotation-input_files'
         return 'Annotation-file'
 
-    def __get_annotation_file_options(self):
+    def __get_annotation_file_options(self) -> html:
         label = self.__get_annotations()
         return html.Div([
             html.Div(children=[
@@ -112,7 +104,7 @@ class Settings:
                 style={'display': 'column'})
         ])
 
-    def __get_annotation_gene_options(self):
+    def __get_annotation_gene_options(self) -> html:
         if self.handler.dict_is_not_set():
             return html.Div([
                 html.Div(children=[
@@ -133,12 +125,12 @@ class Settings:
             ])
         return ""
 
-    def __get_sequencing_annotation(self):
+    def __get_sequencing_annotation(self) -> str:
         if len(self.sequencing) >= 2:
             return 'Data-input_files'
         return 'Data-file'
 
-    def __get_display_sequence_options(self):
+    def __get_display_sequence_options(self) -> html:
         label = self.__get_sequencing_annotation()
         return html.Div([
             html.Div(children=[
@@ -149,7 +141,7 @@ class Settings:
                 html.Div(id='sequence')
             ])])
 
-    def __get_genome_options(self):
+    def __get_genome_options(self) -> html:
         if not self.genome:
             raise NameError('There was no FASTA-File found.')
         if type(self.genome) is File.FileInput:
@@ -180,14 +172,14 @@ class Settings:
             ])
         ])
 
-    def __get_expression_label(self):
+    def __get_expression_label(self) -> str:
         if not self.expression:
             return 'Nothing here'
         if len(self.expression) > 1:
             return 'Expression-input_files'
         return 'Expression-file'
 
-    def __get_display_expression_options(self):
+    def __get_display_expression_options(self) -> html:
         label = self.__get_expression_label()
         if self.expression:
             return html.Div([html.Hr(style=Line),
@@ -197,7 +189,7 @@ class Settings:
                              html.Div(id='expression-chooser')])
         return ""
 
-    def __get_button_interaction(self):
+    def __get_button_interaction(self) -> html:
         if self.__is_set_sequence():
             return html.Div([
                 dcc.ConfirmDialogProvider(
@@ -212,12 +204,12 @@ class Settings:
                 dcc.Link(html.Button('Submit', id='submit-val', n_clicks=0), href='/page1'),
             ], style={'textAlign': 'center'})
 
-    def get_layout_for_settings(self):
+    def get_layout_for_settings(self) -> html.Div:
         """
         Return the layout of the settings from which the user can choose its input_files.
 
         :return: Layout of Settings
-        :rtype: html
+        :rtype: html.Div
         """
         return html.Div(children=[
             self.__get_img(),
@@ -231,7 +223,7 @@ class Settings:
                 self.__get_button_interaction()
             ])])
 
-    def __is_set_sequence(self):
+    def __is_set_sequence(self) -> bool:
         if self.set_sequence:
             return True
         return False

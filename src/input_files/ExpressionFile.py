@@ -1,6 +1,7 @@
 from pandas import DataFrame, read_csv, concat, errors
 from logging import getLogger
 from plotly import graph_objects as go
+from src.input_files.File import FileInput
 from src.input_files.File_type import Filetype
 from src.input_files.ColumnHeader import Header
 
@@ -13,13 +14,20 @@ class Expression:
         self.expression_table = DataFrame()
         self.logger = getLogger(__name__)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
+        """
+        Return true if the file is empty otherwise false
+
+        :return: If file is empty
+        :rtype: bool
+        """
         return self.expression_table.empty
 
-    def get_expression_figure(self, gene):
+    def get_expression_figure(self, gene: str) -> go.Figure:
         """
         Return an expression linegraph with error bars.
 
+        :param gene: string of the gene location on the chromosom
         :return: graph
         :rtype: go.Figure
         """
@@ -30,7 +38,7 @@ class Expression:
         table_for_figure[Header.TPM.value] = table_for_figure[Header.TPM.value].astype(float)
         return self.__get_transcript_plot(table_for_figure)
 
-    def create_expression_file(self, file, gene_list_with_transcripts: DataFrame, start_and_stop: DataFrame):
+    def create_expression_file(self, file: FileInput, gene_list_with_transcripts: DataFrame, start_and_stop: DataFrame):
         """
         Return an expression linegraph with error bars.
 
@@ -97,7 +105,7 @@ class Expression:
             raise FileNotFoundError
 
     @staticmethod
-    def __get_transcript_plot(transcript_table):
+    def __get_transcript_plot(transcript_table: [DataFrame]) -> go.Figure:
         fig = go.Figure()
         for name, group_sample in transcript_table.groupby(by=[Header.GENE_ID.value, Header.SAMPLE.value]):
             sample = name[1]
@@ -116,7 +124,7 @@ class Expression:
                                                       arrayminus=standard_deviation)))
         return fig
 
-    def __get_gen_name(self, gene):
+    def __get_gen_name(self, gene: str) -> str:
         df = self.gene_with_start_stop
         for gen, chrom, start, stop in zip(df.gene_id, df.Chrom, df.Start, df.Stop):
             if gene == str(chrom) + ':' + str(start) + '-' + str(stop):

@@ -4,9 +4,10 @@ import dash_bio
 from dash.exceptions import PreventUpdate
 
 from src.app.AppInterface import app
+from src.input_files.Colors import Color
 
 """This File provides settings to display the specific data and not all data at once. This has a performance reason."""
-Line = {'textAlign': 'left', 'height': '1px', 'width': '1500px', 'backgroundColor': '#161618'}
+Line = {'textAlign': 'left', 'height': '1px', 'width': '1500px', 'backgroundColor': Color.BLACK_HTML.value}
 center = {'textAlign': 'center'}
 
 
@@ -73,11 +74,14 @@ class Display:
         :return: reference dict
         :rtype: dict
         """
+
         return dict(id="A.thaliana (TAIR 10)",
                     name="A. thaliana (TAIR 10)",
-                    fastaURL=self.iclip.get_current_genome_file().get_serverpath(),
-                    indexURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_chr_all.fas.fai",
-                    aliasURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_alias.tab",
+                    fastaURL=self.iclip.get_current_genome_file(),
+                    indexURL=self.iclip.get_current_index_file(),
+                    #indexURL='tracks/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.fai',
+                    #indexURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_chr_all.fas.fai",
+                    #aliasURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_alias.tab",
                     tracks=self.iclip.get_selected_files()
                     )
 
@@ -86,8 +90,6 @@ class Display:
         This method provides a section, where a gen description takes place.
         """
         return html.Div(children=[
-            dcc.Textarea(value='''Please select a gene.''',
-                         id='information'),
             html.Div(id='information-output')
         ])
 

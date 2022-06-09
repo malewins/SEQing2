@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from Bio import SeqIO
-from pyBedGraph import BedGraph
 from pybedtools import BedTool
 from src.input_files.File_type import Filetype
+from src.input_files.Colors import Color
 from logging import getLogger
 
 
@@ -23,46 +22,17 @@ class FileInput:
         self.server_path = server_path
         self.logger = getLogger(__name__)
 
-    def get_dict_for_annotation(self, gen_list):
-        """
-        Method returns a dictionary for annotation input_files
-
-        :return: dict"""
-        if self.file_type == Filetype.FASTA:
-            return [{'value': rec.id, 'label': rec.name} for rec in SeqIO.parse(self.file_path, "fasta")]
-        if self.file_type == Filetype.BEDGRAPH:  # This is a static test
-            bed_graph = BedGraph('samples/example.sizes', self.file_path, ignore_missing_bp=False)
-            return bed_graph.load_chrom_data('Chr1')
-        if self.file_type in [Filetype.BED, Filetype.GTF, Filetype.GFF, Filetype.GFF, Filetype.GFF]:
-            bed_tool_file = BedTool(self.file_path)
-            print(bed_tool_file[0].name)
-            if gen_list != "" and gen_list is not None:
-                return [{'label': str(entry.name),
-                         'value': str(entry.chrom).replace('Chr', '') + ':' + str(entry.start) + '-' + str(entry.stop)}
-                        for entry in BedTool(self.file_path)
-                        if entry.name in gen_list]
-            else:
-                return [{'label': str(entry.name),
-                         'value': str(entry.chrom).replace('Chr', '') + ':' + str(entry.start) + '-' + str(entry.stop)}
-                        for entry in BedTool(self.file_path)]
-
-    # TODO: If dict has instead of 2 -> chr2 than it is not necessary to replace Chr.
-    #  It could have total different names
-
-    def get_general_dict(self, colour):
+    def get_general_dict(self, colour) -> dict:
         """
         Creates a dict entry for the igv component. Only works with Data-input_files
 
         :return: dict
         """
-        # if self.file_type == Filetype.WIG:
-        # transfomrer = pybedtools.contrib.bigwig.wig_to_bigwig(self.file_path,"", "test")
         if not colour:
-            colour = 'rgb(191, 188, 6)'
+            colour = Color.YELLOW_RGB.value
         return dict(name=self.file_name,
                     url=self.server_path,
                     nameField='gene',
-                    # indexed='false',
                     color=colour)
 
     def get_genes_for_annotation(self):
@@ -85,10 +55,10 @@ class FileInput:
                      if (str(entry.start) + ':' + str(entry.stop)) == gen]
             if locus is not None:
                 return locus
-            return ValueError
+            raise ValueError
         return gen
 
-    def get_filename(self):
+    def get_filename(self) -> str:
         """
         Return the name of the file.
 
@@ -97,16 +67,16 @@ class FileInput:
         """
         return self.file_name
 
-    def get_filetype(self):
+    def get_filetype(self) -> Filetype:
         """
         Return the type of the file.
 
         :return: filetype
-        :rtype: file_type
+        :rtype: Filetype
         """
         return self.file_type
 
-    def get_serverpath(self):
+    def get_serverpath(self) -> str:
         """
         Return the path of the file on the server.
 
@@ -115,7 +85,7 @@ class FileInput:
         """
         return self.server_path
 
-    def get_filepath(self):
+    def get_filepath(self) -> str:
         """
         Return the path of the file on the local drive.
 
@@ -123,3 +93,11 @@ class FileInput:
         :rtype: str
         """
         return self.file_path
+
+    def is_empty(self) -> bool:
+        """
+
+        """
+        if self.file_name == "":
+            return True
+        return False

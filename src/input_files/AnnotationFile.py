@@ -17,6 +17,10 @@ class Annotation:
         self.logger = getLogger(__name__)
 
     def create_dict_for_annotation(self, anno_desc_files: list):
+        """
+        Create a dict for the igv-component and create a look-up table for the mapped transcript to gene.
+        :param anno_desc_files: Takes a list of files that have at least a GFT- and a DESCRIPTION.CSV File
+        """
         if len(anno_desc_files) > 3:
             raise NameError('To many arguments.')
         index_file = self.__get_file(Header.INDEX.value, anno_desc_files)
@@ -31,7 +35,7 @@ class Annotation:
         anno_type = file_anno.get_filetype()
         if anno_type == Filetype.BED:
             csv = self.__load_file(index_file, Header.INDEX)
-            anno = self.__load_file(index_file, Header.NONE)  # TODO Funktioniert aktuell nicht. Zu viele Header
+            anno = self.__load_file(index_file, Header.NONE)
             self.transcript_to_gene = csv.join(anno.set_index(Header.TRANSCRIPT_ID.value),
                                                on=Header.TRANSCRIPT_ID.value)
         if anno_type == Filetype.GTF:
@@ -55,15 +59,15 @@ class Annotation:
         """
         return self.gene_with_start_stop.empty
 
-    def get_dropdown_menu(self):
+    def get_dropdown_menu(self) -> dict:
         """
         Return a specific dict for dcc Dropdown.
         :return: Gen-Dict
-        :rtype: dict
+        :rtype: dict {"label":GEN_ID - DESCRIPTION, "value": CHROMOSOME + GENE.START + GENE.STOP}
         """
         return self.dropdown_menu
 
-    def get_transcript_to_gene(self):
+    def get_transcript_to_gene(self) -> DataFrame:
         """
         Return a joined table, where transcript are mapped to its corresponding gene.
         :return: Long Table of Gene with transcripts
@@ -71,7 +75,7 @@ class Annotation:
         """
         return self.transcript_to_gene
 
-    def get_genes_with_start_and_stops(self):
+    def get_genes_with_start_and_stops(self) -> DataFrame:
         """
         Return a table with length of the genes.
         :return: Gene Table with explicit start and stops
@@ -80,7 +84,7 @@ class Annotation:
         return self.gene_with_start_stop
 
     @staticmethod
-    def __get_gtf_as_table(gtf: BedTool):
+    def __get_gtf_as_table(gtf: BedTool) -> DataFrame:
         chromosome = []
         gen_id = []
         transcript_id = []
@@ -126,7 +130,7 @@ class Annotation:
         return ''
 
     @staticmethod
-    def __get_file(kind: str, all_files: list):
+    def __get_file(kind: str, all_files: list) -> FileInput or None:
         for file in all_files:
             if kind in file.get_filename().lower():
                 return file

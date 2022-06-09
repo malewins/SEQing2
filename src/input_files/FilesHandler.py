@@ -28,7 +28,7 @@ class FileHandler(FileHandlerInterface):
         self.path_of_files = args.get_absolut_path('dir')
         self.load_all_files(args.get_directory())
 
-    def get_genome(self, filename):
+    def get_genome(self, filename) -> list[FileInput]:
         """
         Return a set of input_files, which could be used as a reference genome.
 
@@ -46,7 +46,7 @@ class FileHandler(FileHandlerInterface):
                     genome.append(file)
         return genome
 
-    def get_specific_files_as_dict(self, filename, color):
+    def get_specific_files_as_dict(self, filename, color) -> list:
         """
         Return a list of dictionaries for the igv-component track.
 
@@ -67,15 +67,17 @@ class FileHandler(FileHandlerInterface):
                 if specif_file.get_filename() == name:
                     specific_files.append(specif_file.get_general_dict(color))
         if len(specific_files) == 0:
-            return FileNotFoundError
+            raise FileNotFoundError
         return specific_files
 
-    def get_specific_file(self, file):
+    def get_specific_file(self, file) -> FileInput:
         """
         Return a specific file.
 
         :param file: str of an existing filename
-        :return: FileInput a specific file from all given input_files as file"""
+        :return: FileInput a specific file from all given input_files as file
+        :rtype: FileInput
+        """
         if file is not None:
             for entry in self.all_files:
                 if isinstance(file, list):
@@ -84,15 +86,16 @@ class FileHandler(FileHandlerInterface):
                             return entry
                 elif entry.get_filename() == file:
                     return entry
-            return FileNotFoundError
-        return NameError('The field file is empty.')
+            raise FileNotFoundError
+        raise NameError('The field file is empty.')
 
-    def get_gene_dict(self, annotation_files):
+    def get_gene_dict(self, annotation_files) -> dict or None:
         """
         Return a dict.
 
         :param  annotation_files: FileInput with datatype(BED6/12,GFF,GTF,CSV,TSV) as parameter
         :return: a dict to annotate the genes
+        :rtype: dict or None
         """
         if self.anno_file.is_empty():
             if len(annotation_files) >= 2:
@@ -104,7 +107,7 @@ class FileHandler(FileHandlerInterface):
             return None
         return self.anno_file.get_dropdown_menu()
 
-    def get_annotations(self):
+    def get_annotations(self) -> list[FileInput]:
         """
         Returns a list of possible annotation input_files.
 
@@ -115,12 +118,12 @@ class FileHandler(FileHandlerInterface):
                 file.get_filetype() in [Filetype.GTF,
                                         Filetype.BED]]
 
-    def get_sequencing_files(self):
+    def get_sequencing_files(self) -> list[str]:
         """
         Return a list of all possible sequencing input_files.
 
         :return: Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG
-        :rtype: list[FileInput]
+        :rtype: list[str]
         """
         # TODO: Implement BED6-File as sequence-File
         return [sequence_file.get_filename() for sequence_file in self.all_files if
@@ -129,53 +132,45 @@ class FileHandler(FileHandlerInterface):
                                                  # File_type.Filetype.WIG, future release
                                                  Filetype.bigWIG]]
 
-    def get_genome_files(self):
+    def get_genome_files(self) -> list[str]:
         """
         Return a list of type FASTA.
 
         :return: Files like FA, FAS
-        :rtype: list[FileInput]
+        :rtype: list[str]
         """
         return [genome.get_filename() for genome in self.all_files if
                 genome.get_filetype() is Filetype.FASTA]
 
-    def get_expressions(self):
+    def get_expressions(self) -> list[str]:
         """
         Return a list of type CSV-input_files, which relegate to a folder of sf-input_files.
 
         :return: CSV-input_files
-        :rtype: list[FileInput]
+        :rtype: list[str]
         """
         return [expression.get_filename() for expression in self.all_files if
                 expression.get_filetype() is Filetype.SF]
 
-    def get_descriptions(self):
+    def get_descriptions(self) -> list[str]:
         """
         Return a list of type CSV-input_files.
 
         :return: CSV-input_files
-        :rtype: list[FileInput]
+        :rtype: list[str]
         """
         return [expression.get_filename() for expression in self.all_files if
                 expression.get_filetype() is Filetype.CSV]
 
-    @staticmethod
-    def get_locus(genome_file, gen):
-        """
-        Return the specific location of a gene.
-
-        :param genome_file: FileInput file need the current genome-file
-        :param gen: str need the annotated gen
-        :return: a dict readable for the igv-component
-        """
-        return genome_file.get_locus(gen)
-
-    def get_expression_figure(self, file, gene):
+    def get_expression_figure(self, file: FileInput, gene: str) -> go.Figure:
         """
         Return an expression linegraph with error bars.
 
+        :param file: take a FileInput with Filetype.SF
+        :param gene: takes the range of a gene on the chromosome
         :return: graph
         :rtype: go.Figure
+        :raise: NameError if there exist no annotation file
         """
         # TODO Check if expression exist
         if self.expression_file.is_empty():
@@ -227,13 +222,15 @@ class FileHandler(FileHandlerInterface):
                                      self.SERVER_FOLDER + file_name)
                 self.all_files.append(the_file)
 
-    def __get_filetype(self, file):
+    def __get_filetype(self, file) -> Filetype:
         file_type = Filetype.NONE
-        if file.find('.fa') != -1:
+        if re.search(r'\b.fa\b', file):
             file_type = Filetype.FASTA
-        if re.search(r"\b.bed\b", file):  # explicit search for .bed. Maybe should be used also on other input_files
+        if re.search(r'\b.fai\b', file):
+            file_type = Filetype.FASTAINDEX
+        if re.search(r"\b.bed\b", file):  # explicit search for .bed.
             # Be aware of input_files with index like .bed.gz.tbi
-            file_type = self.__check_bed()
+            file_type = Filetype.BED
         if file.find('.bedgraph') != -1:
             file_type = Filetype.BEDGRAPH
         if file.find('.gtf') != -1:
@@ -253,7 +250,7 @@ class FileHandler(FileHandlerInterface):
         return file_type
 
     @staticmethod
-    def __check_csv(file):
+    def __check_csv(file) -> Filetype:
         if file.find('index') != -1:
             return Filetype.CSV
         if file.find('description') != -1:
@@ -263,14 +260,5 @@ class FileHandler(FileHandlerInterface):
         return Filetype.NONE
 
     @staticmethod
-    def __check_bed():
-        """
-        THis should check if it is a BED6 annotation-File or BED6 sequencing file.
-        """
-        # May not needed for an extra check
-        #        BedTool(str(self.path_of_files) + '/' + file)
-        return Filetype.BED
-
-    @staticmethod
-    def __remove_zone_identifier(file):
+    def __remove_zone_identifier(file) -> str:
         return file.replace(':Zone.Identifier', '')

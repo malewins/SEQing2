@@ -1,5 +1,5 @@
 # Run this app with `python app.py` and
-# visit http://127.0.0.1:8050/ in your web browser.
+# visit http://127.0.0.1:8050/ in your web browser, if not set the port to a different location.
 
 from dash.dependencies import Input, Output
 from dash import dcc
@@ -8,11 +8,7 @@ from dash import html
 from flask import send_from_directory
 from src.components import DisplayData, SetSettingsByUser
 from src.app.AppInterface import app, server
-
-colors = {
-    'background': '#f2f5f4',
-    'text': '#008fff'
-}
+from src.input_files.Colors import Color
 
 
 class AppHandler:
@@ -31,13 +27,13 @@ class AppHandler:
         self.display = DisplayData.Display(component_handler)
 
         @server.route('/tracks/<path:path>')
-        def data(path):
+        def data(path) -> server:
             """Evoke that the input_files are available via a server"""
             return send_from_directory(absolut_dir_path, path)
 
         @app.callback(Output('page-content', 'children'),
                       Input('url', 'pathname'))
-        def display_page(pathname):
+        def display_page(pathname) -> html:
             """Handles the different pages to display."""
             if pathname == '/page1':
                 return self.display.layout()
@@ -54,18 +50,18 @@ class AppHandler:
         app.run_server(debug=True, port=self.port)
 
     @staticmethod
-    def pages():
+    def pages() -> html.Div:
         """This method provides the pages"""
         return html.Div([
             dcc.Location(id='url', refresh=False),
             html.Div(id='page-content')])
 
-    def get_layout(self):
+    def get_layout(self) -> html.Div:
         """
         Return the general layout for the webpage.
 
         :return: the different webpages
         :rtype; html
         """
-        return html.Div(style={'backgroundColor': colors['background']},
+        return html.Div(style={'backgroundColor': Color.WHITE_HTML.value},
                         children=[dcc.Loading(self.pages(), type='circle')])
