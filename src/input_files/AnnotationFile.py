@@ -8,6 +8,10 @@ import re
 
 
 class Annotation:
+    """
+    The class Annotation is to handle different Filetypes bed12, gtf and csv files to create
+    an object, that can identify to a gene, a description and its corresponding transcripts.
+    """
 
     def __init__(self):
         self.transcript_to_gene = DataFrame()
@@ -46,9 +50,9 @@ class Annotation:
         if desc_file is not None:
             desc = self.__load_file(desc_file, Header.DESCRIPTION)
             self.transcript_to_gene = self.transcript_to_gene.merge(
-                                        desc[[Header.ENSEMBL_GENE_ID.value, Header.DESCRIPTION.value]],
-                                        how='left', left_on=Header.GENE_ID.value,
-                                        right_on=Header.ENSEMBL_GENE_ID.value)
+                desc[[Header.ENSEMBL_GENE_ID.value, Header.DESCRIPTION.value]],
+                how='left', left_on=Header.GENE_ID.value,
+                right_on=Header.ENSEMBL_GENE_ID.value)
         self.__get_dict_for_dropdown()
 
     def is_empty(self) -> bool:
@@ -113,7 +117,7 @@ class Annotation:
             start.append(min_start)
             max_stop = group[Header.STOP.value].max()
             stop.append(max_stop)
-            chrom = str(group[Header.CHROM.value].iloc[0]).replace('Chr', '')
+            chrom = str(group[Header.CHROM.value].iloc[0])
             chromosome.append(chrom)
             desc = self.__get_description_if_present(group)
             dictionary_for_dropdown.append({'label': str(name) + desc,
@@ -124,7 +128,7 @@ class Annotation:
         self.dropdown_menu = dictionary_for_dropdown
 
     @staticmethod
-    def __get_description_if_present(df) -> str:
+    def __get_description_if_present(df: DataFrame) -> str:
         if Header.DESCRIPTION.value in df.columns:
             return ' - ' + str(df[Header.DESCRIPTION.value].values[0])
         return ''
@@ -137,17 +141,16 @@ class Annotation:
         return None
 
     @staticmethod
-    def __filetype(anno_file) -> Filetype:
+    def __filetype(anno_file: str) -> Filetype:
         if re.search(r"\b.bed\b", anno_file):
             return Filetype.BED
         if anno_file.find('.gtf') != -1:
             return Filetype.GTF
         return Filetype.NONE
 
-    def __load_file(self, file, header: Header):
+    def __load_file(self, file: FileInput, header: Header) -> read_csv:
         try:
-            if type(file) == FileInput:
-                file = file.get_filepath()
+            file = file.get_filepath()
             if header == Header.INDEX:
                 return read_csv(file, compression='infer',
                                 names=[Header.GENE_ID.value, Header.TRANSCRIPT_ID.value], sep='\t',

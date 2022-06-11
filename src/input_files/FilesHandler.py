@@ -9,6 +9,7 @@ from src.input_files.File import FileInput
 from src.input_files.FileHandlerInterface import FileHandlerInterface
 from src.input_files.AnnotationFile import Annotation
 from src.input_files.ExpressionFile import Expression
+from src.input_files.ARGS import Args
 import re
 
 
@@ -19,7 +20,7 @@ class FileHandler(FileHandlerInterface):
     :param args: ARGS.Args takes the object Args
     """
 
-    def __init__(self, args):
+    def __init__(self, args: Args):
         self.SERVER_FOLDER = 'tracks/'
         self.all_files = deque()
         self.args = args
@@ -28,7 +29,7 @@ class FileHandler(FileHandlerInterface):
         self.path_of_files = args.get_absolut_path('dir')
         self.load_all_files(args.get_directory())
 
-    def get_genome(self, filename) -> list[FileInput]:
+    def get_genome(self, filename: str) -> list[FileInput]:
         """
         Return a set of input_files, which could be used as a reference genome.
 
@@ -46,7 +47,7 @@ class FileHandler(FileHandlerInterface):
                     genome.append(file)
         return genome
 
-    def get_specific_files_as_dict(self, filename, color) -> list:
+    def get_specific_files_as_dict(self, filename: list[str], color: str) -> list[dict]:
         """
         Return a list of dictionaries for the igv-component track.
 
@@ -70,7 +71,7 @@ class FileHandler(FileHandlerInterface):
             raise FileNotFoundError
         return specific_files
 
-    def get_specific_file(self, file) -> FileInput:
+    def get_specific_file(self, file: str) -> FileInput:
         """
         Return a specific file.
 
@@ -89,7 +90,7 @@ class FileHandler(FileHandlerInterface):
             raise FileNotFoundError
         raise NameError('The field file is empty.')
 
-    def get_gene_dict(self, annotation_files) -> dict or None:
+    def get_gene_dict(self, annotation_files: list[FileInput]) -> dict or None:
         """
         Return a dict.
 
@@ -107,16 +108,16 @@ class FileHandler(FileHandlerInterface):
             return None
         return self.anno_file.get_dropdown_menu()
 
-    def get_annotations(self) -> list[FileInput]:
+    def get_annotations(self) -> list[str]:
         """
         Returns a list of possible annotation input_files.
 
         :return: Files like GTF, BED12 as a list
-        :rtype: list[FileInput]
+        :rtype: list[str]
         """
-        return [file for file in self.all_files if
-                file.get_filetype() in [Filetype.GTF,
-                                        Filetype.BED]]
+        return sorted([file.get_filename() for file in self.all_files if
+                       file.get_filetype() in [Filetype.GTF,
+                                               Filetype.BED]])
 
     def get_sequencing_files(self) -> list[str]:
         """
@@ -125,12 +126,11 @@ class FileHandler(FileHandlerInterface):
         :return: Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG
         :rtype: list[str]
         """
-        # TODO: Implement BED6-File as sequence-File
-        return [sequence_file.get_filename() for sequence_file in self.all_files if
-                sequence_file.get_filetype() in [Filetype.BAM,
-                                                 Filetype.BEDGRAPH,
-                                                 # File_type.Filetype.WIG, future release
-                                                 Filetype.bigWIG]]
+        return sorted([sequence_file.get_filename() for sequence_file in self.all_files if
+                       sequence_file.get_filetype() in [Filetype.BAM,
+                                                        Filetype.BEDGRAPH,
+                                                        # File_type.Filetype.WIG, future release
+                                                        Filetype.bigWIG]])
 
     def get_genome_files(self) -> list[str]:
         """
@@ -139,8 +139,8 @@ class FileHandler(FileHandlerInterface):
         :return: Files like FA, FAS
         :rtype: list[str]
         """
-        return [genome.get_filename() for genome in self.all_files if
-                genome.get_filetype() is Filetype.FASTA]
+        return sorted([genome.get_filename() for genome in self.all_files if
+                       genome.get_filetype() is Filetype.FASTA])
 
     def get_expressions(self) -> list[str]:
         """
@@ -149,8 +149,8 @@ class FileHandler(FileHandlerInterface):
         :return: CSV-input_files
         :rtype: list[str]
         """
-        return [expression.get_filename() for expression in self.all_files if
-                expression.get_filetype() is Filetype.SF]
+        return sorted([expression.get_filename() for expression in self.all_files if
+                       expression.get_filetype() is Filetype.SF])
 
     def get_descriptions(self) -> list[str]:
         """
@@ -159,8 +159,8 @@ class FileHandler(FileHandlerInterface):
         :return: CSV-input_files
         :rtype: list[str]
         """
-        return [expression.get_filename() for expression in self.all_files if
-                expression.get_filetype() is Filetype.CSV]
+        return sorted([expression.get_filename() for expression in self.all_files if
+                       expression.get_filetype() is Filetype.CSV])
 
     def get_expression_figure(self, file: FileInput, gene: str) -> go.Figure:
         """
@@ -190,7 +190,7 @@ class FileHandler(FileHandlerInterface):
         """
         return self.anno_file.is_empty()
 
-    def load_all_files(self, path):
+    def load_all_files(self, path: str):
         """
         Load all Files into the FilesHandler.
 
@@ -222,7 +222,7 @@ class FileHandler(FileHandlerInterface):
                                      self.SERVER_FOLDER + file_name)
                 self.all_files.append(the_file)
 
-    def __get_filetype(self, file) -> Filetype:
+    def __get_filetype(self, file: str) -> Filetype:
         file_type = Filetype.NONE
         if re.search(r'\b.fa\b', file):
             file_type = Filetype.FASTA
@@ -250,7 +250,7 @@ class FileHandler(FileHandlerInterface):
         return file_type
 
     @staticmethod
-    def __check_csv(file) -> Filetype:
+    def __check_csv(file: str) -> Filetype:
         if file.find('index') != -1:
             return Filetype.CSV
         if file.find('description') != -1:
@@ -260,5 +260,5 @@ class FileHandler(FileHandlerInterface):
         return Filetype.NONE
 
     @staticmethod
-    def __remove_zone_identifier(file) -> str:
+    def __remove_zone_identifier(file: str) -> str:
         return file.replace(':Zone.Identifier', '')

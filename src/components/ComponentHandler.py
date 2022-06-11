@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from src.input_files.File import FileInput
 from src.input_files.Colors import Color
+from src.input_files.FilesHandler import FileHandler
 import plotly.graph_objects as go
 
 
@@ -12,7 +13,7 @@ class Component:
     :param files_handler: FileHandler takes an Object of FileHandler
     """
 
-    def __init__(self, files_handler):
+    def __init__(self, files_handler: FileHandler):
         self.handler = files_handler
         self.current_genome_file: FileInput = FileInput('', '', '')
         self.current_index_file: FileInput = FileInput('', '', '')
@@ -81,7 +82,7 @@ class Component:
             return self.handler.get_gene_dict(self.description_files)
         if self.annotation_files != "" and self.description_files:
             return self.handler.get_gene_dict(self.annotation_files)
-        return self.handler.get_gene_dict("")
+        return self.handler.get_gene_dict([])
 
     def get_annotations(self) -> list[str]:
         """
@@ -90,7 +91,7 @@ class Component:
         :return: A list of filenames
         :rtype: list[str]
         """
-        return [file.get_filename() for file in self.handler.get_annotations()]
+        return self.handler.get_annotations()
 
     def get_sequencing_files(self):
         """
@@ -109,7 +110,7 @@ class Component:
         """
         if len(self.sequence_files) > 0 and self.annotation_files:
             return self.sequence_files + self.annotation_files
-        return self.handler.get_specific_files_as_dict("", color=Color.ORANGE_RGB.value)
+        return self.handler.get_specific_files_as_dict([], color=Color.ORANGE_RGB.value)
 
     def get_genome(self) -> list[FileInput]:
         """

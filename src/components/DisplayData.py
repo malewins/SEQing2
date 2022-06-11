@@ -27,7 +27,7 @@ class Display:
         @app.callback(
             Output('igv', 'children'),
             Input('Gen-select', 'value'))
-        def return_igv(value):
+        def return_igv(value: str) -> html.Div:
             """Return the IGV component with the selected genome."""
             self.gen = value
             component.set_gen_value(value)
@@ -41,7 +41,7 @@ class Display:
         @app.callback(
             Output('information-output', 'children'),
             Input('Gen-select', 'value'))
-        def update_output(value):
+        def update_output(value: str) -> str:
             if not value:
                 raise PreventUpdate
             self.gen = value
@@ -50,24 +50,30 @@ class Display:
         @app.callback(
             Output('graph', 'children'),
             Input('Gen-select', 'value'))
-        def update_graph(value):
+        def update_graph(value: str) -> html.Div:
             if not value:
                 raise PreventUpdate
             return html.Div(dcc.Graph(figure=self.iclip.get_figure(value)), id='plot')
 
-    def clustergram(self):
-        """This method provides the Gene-Selection."""
+    def clustergram(self) -> html.Div:
+        """
+        This method provides the Gene-Selection.
+
+        :return: the dropdown menu to choose a specific gene
+        :rtype: html.Div
+        """
         return html.Div([
             dcc.Dropdown(
                 id='Gen-select',
                 options=self.iclip.get_current_gene_dict(),
-                placeholder='Select a gene...'
+                placeholder='Select a gene...',
+                style={'color': Color.BLACK_RGB.value}
             ),
             dcc.Loading(id='igv'),
             html.Div(id='select-gen')
         ])
 
-    def get_references(self):
+    def get_references(self) -> dict:
         """
         Return a dict as references for the igv-component.
 
@@ -79,24 +85,27 @@ class Display:
                     name="A. thaliana (TAIR 10)",
                     fastaURL=self.iclip.get_current_genome_file(),
                     indexURL=self.iclip.get_current_index_file(),
-                    #indexURL='tracks/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.fai',
-                    #indexURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_chr_all.fas.fai",
-                    #aliasURL="https://s3.amazonaws.com/igv.org.genomes/tair10/TAIR10_alias.tab",
                     tracks=self.iclip.get_selected_files()
                     )
 
-    def gene_annotation_area(self):
+    @staticmethod
+    def gene_annotation_area() -> html.Div:
         """
         This method provides a section, where a gen description takes place.
+
+        :return: location of a gene
+        :rtype: html.Div
         """
         return html.Div(children=[
             html.Div(id='information-output')
         ])
 
     @staticmethod
-    def set_expression_graph():
+    def set_expression_graph() -> html.Div:
         """
         This method provides a section, where the expression graph takes place.
+        :return: Expression-Graph layout
+        :rtype: html.Div
         """
         return html.Div(children=[
             html.Hr(style=Line),
@@ -104,12 +113,12 @@ class Display:
             dcc.Loading(id='graph')
         ])
 
-    def layout(self):
+    def layout(self) -> html.Div:
         """
         Returns the layout of /page1.
 
         :return: html layout.
-        :rtype: html
+        :rtype: html.Div
         """
         return html.Div(children=[
             self.gene_annotation_area(),

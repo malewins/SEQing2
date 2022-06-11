@@ -7,14 +7,14 @@ from pprint import pprint
 
 
 class Args:
-    """Create Object class ARGS"""
+    """Create Object class ARGS that handles arguments from the commandline."""
 
     def __init__(self):
         self.parser = ArgumentParser(description='Interactive, web based visualization for iCLIP and rna-seq data.')
         self.__set_argument()
 
     @staticmethod
-    def __dir_path(string):
+    def __dir_path(string: str) -> str:
         if isdir(string):
             return string
         else:
@@ -57,9 +57,11 @@ class Args:
         # add Port as Parameter
         self.parser.add_argument('-port', dest='port', help='''Choose a port on which the app should run. 
                                 For example -port 8050.''', type=int, default=8050)
+        self.parser.add_argument('-dark', help='''Experimental Mode to display the data in a dark mode.''',
+                                 action='store_true', default=False)
         self.parser.parse_args()
 
-    def has_option(self, option):
+    def has_option(self, option: str) -> bool:
         """
         Checks for option. If option does not exist it throws an Exception.
 
@@ -85,9 +87,17 @@ class Args:
             return args.port
         if option == 'anno':
             return args.anno
-        return TypeError
+        if option == 'dark':
+            return args.dark
+        raise TypeError
 
-    def get_absolut_path(self, arg):
+    def get_absolut_path(self, arg: str) -> Path or None:
+        """
+        Get absolut path for the folder given in dir or anno
+
+        :return: Absolut path
+        :rtype: Path or None
+        """
         parser = self.parser.parse_args()
         if arg == 'dir':
             return Path(parser.dir).resolve()
@@ -95,7 +105,7 @@ class Args:
             return Path(parser.anno).resolve()
         return None
 
-    def get_directory(self):
+    def get_directory(self) -> str:
         """
         Return Directory. If it is not selected it return current directory.
 
@@ -111,7 +121,7 @@ class Args:
                 sys.exit('Directory is empty')
         return getcwd()
 
-    def get_annotation_directory(self):
+    def get_annotation_directory(self) -> str:
         """
         Return Directory. If it is not selected it raises NameError, because an annotation file is needed.
 
@@ -128,21 +138,21 @@ class Args:
                 sys.exit('Directory is empty')
         raise NameError('Missing annotation directory! Please add a Folder with annotation files!')
 
-    def get_files(self):
+    def get_files(self) -> list[str]:
         """
         Return a list of input input_files, given by the user.
 
         :return: file list
-        :rtype: list[path]
+        :rtype: list[str]
         """
         args = self.parser.parse_args()
         files = []
         if args.fa:
-            return [str(f) for f in args.fa if self.__validate_files(f)]
+            return [str(f) for f in args.fa if f]
         return files
 
     @staticmethod
-    def __validate_directory(path):
+    def __validate_directory(path) -> str:
         """
         Should be a private method, which checks the directory.
 
@@ -161,22 +171,7 @@ class Args:
             raise PermissionError
         return path
 
-    @staticmethod
-    def __validate_files(path):
-        # TODO: Must be corrected
-        # print(Path(path).resolve())
-        # if not Path(aPath).exists():
-        #   pprint("Path does not exist.")
-        #  raise ValueError
-        # if not Path.is_file(path):
-        #   pprint("File not Found.")
-        #  raise FileNotFoundError
-        # if not access(path, R_OK):
-        #    pprint("Not accessible")
-        #   raise PermissionError
-        return path
-
-    def get_port(self):
+    def get_port(self) -> int:
         """
         Return the port.
 
@@ -184,3 +179,12 @@ class Args:
         :rtype: int
         """
         return self.parser.parse_args().port
+
+    def get_mode(self) -> bool:
+        """
+        Return the mode in which the app is displayed.
+
+        :return: True if dark mode is active otherwise false
+        ;rtype: bool
+        """
+        return self.parser.parse_args().dark

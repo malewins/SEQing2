@@ -20,7 +20,7 @@ class AppHandler:
     :param port: takes a port as int.
     """
 
-    def __init__(self, absolut_dir_path, component_handler, port):
+    def __init__(self, absolut_dir_path, component_handler, port, mode):
         self.current_gene_options = component_handler.get_current_gene_dict()
         self.port = port
         self.settings = SetSettingsByUser.Settings(component_handler)
@@ -40,11 +40,11 @@ class AppHandler:
             else:
                 return self.settings.get_layout_for_settings()
 
-        self.runapp()  # start the app
+        self.runapp(mode)  # start the app
 
-    def runapp(self):
+    def runapp(self, mode: bool):
         """This runs the app on the given Port"""
-        app.layout = self.get_layout()
+        app.layout = self.get_layout(mode)
         # This is needed, because callbacks are also called in other input_files.
         app.config.suppress_callback_exceptions = True
         app.run_server(debug=True, port=self.port)
@@ -56,12 +56,17 @@ class AppHandler:
             dcc.Location(id='url', refresh=False),
             html.Div(id='page-content')])
 
-    def get_layout(self) -> html.Div:
+    def get_layout(self, mode: bool) -> html.Div:
         """
         Return the general layout for the webpage.
 
         :return: the different webpages
         :rtype; html
         """
-        return html.Div(style={'backgroundColor': Color.WHITE_HTML.value},
+        if mode:
+            black_or_white = {'backgroundColor': Color.BLACK_HTML.value, 'color': Color.WHITE_HTML.value}
+        else:
+            black_or_white = {'backgroundColor': Color.WHITE_HTML.value, 'color': Color.BLACK_HTML.value}
+
+        return html.Div(style=black_or_white,
                         children=[dcc.Loading(self.pages(), type='circle')])

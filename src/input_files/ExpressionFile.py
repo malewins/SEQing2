@@ -7,6 +7,9 @@ from src.input_files.ColumnHeader import Header
 
 
 class Expression:
+    """
+    This class creates an expression graph for each gene and its corresponding transcripts.
+    """
 
     def __init__(self):
         self.transcript_to_gene = DataFrame()
@@ -27,7 +30,7 @@ class Expression:
         """
         Return an expression linegraph with error bars.
 
-        :param gene: string of the gene location on the chromosom
+        :param gene: string of the gene location on the chromosome
         :return: graph
         :rtype: go.Figure
         """
