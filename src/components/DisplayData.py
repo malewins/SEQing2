@@ -2,6 +2,7 @@ from dash import dcc, html, Input, Output
 import dash_bio
 
 from dash.exceptions import PreventUpdate
+from plotly import io as pio
 
 from src.app.AppInterface import app
 from src.input_files.Colors import Color
@@ -18,18 +19,14 @@ class Display:
     """
 
     def __init__(self, component):
-        self.iclip = component
-        self.gen = ""
+        self.component_controller = component
         self.selected_files = component.get_selected_files()
-        self.location = ""
-        self.fig = component.get_figure("")
 
         @app.callback(
             Output('igv', 'children'),
             Input('Gen-select', 'value'))
         def return_igv(value: str) -> html.Div:
             """Return the IGV component with the selected genome."""
-            self.gen = value
             component.set_gen_value(value)
             return html.Div([
                 dash_bio.Igv(
@@ -44,7 +41,6 @@ class Display:
         def update_output(value: str) -> str:
             if not value:
                 raise PreventUpdate
-            self.gen = value
             return 'The coordinate of the Gene is : \n{}'.format(value)
 
         @app.callback(
@@ -53,9 +49,9 @@ class Display:
         def update_graph(value: str) -> html.Div:
             if not value:
                 raise PreventUpdate
-            return html.Div(dcc.Graph(figure=self.iclip.get_figure(value)), id='plot')
+            return html.Div(dcc.Graph(figure=self.component_controller.get_figure(value)), id='plot')
 
-    def clustergram(self) -> html.Div:
+    def __get_dropdown_and_igv(self) -> html.Div:
         """
         This method provides the Gene-Selection.
 
@@ -65,7 +61,7 @@ class Display:
         return html.Div([
             dcc.Dropdown(
                 id='Gen-select',
-                options=self.iclip.get_current_gene_dict(),
+                options=self.component_controller.get_current_gene_dict(),
                 placeholder='Select a gene...',
                 style={'color': Color.BLACK_RGB.value}
             ),
@@ -83,13 +79,13 @@ class Display:
 
         return dict(id="A.thaliana (TAIR 10)",
                     name="A. thaliana (TAIR 10)",
-                    fastaURL=self.iclip.get_current_genome_file(),
-                    indexURL=self.iclip.get_current_index_file(),
-                    tracks=self.iclip.get_selected_files()
+                    fastaURL=self.component_controller.get_current_genome_file(),
+                    indexURL=self.component_controller.get_current_index_file(),
+                    tracks=self.component_controller.get_selected_files()
                     )
 
     @staticmethod
-    def gene_annotation_area() -> html.Div:
+    def __gene_annotation_area() -> html.Div:
         """
         This method provides a section, where a gen description takes place.
 
@@ -101,7 +97,7 @@ class Display:
         ])
 
     @staticmethod
-    def set_expression_graph() -> html.Div:
+    def __set_expression_graph() -> html.Div:
         """
         This method provides a section, where the expression graph takes place.
         :return: Expression-Graph layout
@@ -113,7 +109,7 @@ class Display:
             dcc.Loading(id='graph')
         ])
 
-    def layout(self) -> html.Div:
+    def get_layout_for_display(self) -> html.Div:
         """
         Returns the layout of /page1.
 
@@ -121,7 +117,7 @@ class Display:
         :rtype: html.Div
         """
         return html.Div(children=[
-            self.gene_annotation_area(),
-            self.clustergram(),
-            self.set_expression_graph()
+            self.__gene_annotation_area(),
+            self.__get_dropdown_and_igv(),
+            self.__set_expression_graph()
         ])

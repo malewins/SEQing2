@@ -119,9 +119,9 @@ class FileHandler(FileHandlerInterface):
                        file.get_filetype() in [Filetype.GTF,
                                                Filetype.BED]])
 
-    def get_sequencing_files(self) -> list[str]:
+    def get_coverage_files(self) -> list[str]:
         """
-        Return a list of all possible sequencing input_files.
+        Return a list of all possible coverage input_files.
 
         :return: Files like BAM, BED4(BedGraph), BED6, WIG, bigWIG
         :rtype: list[str]
@@ -172,7 +172,6 @@ class FileHandler(FileHandlerInterface):
         :rtype: go.Figure
         :raise: NameError if there exist no annotation file
         """
-        # TODO Check if expression exist
         if self.expression_file.is_empty():
             if not self.anno_file.is_empty():
                 self.expression_file.create_expression_file(file, self.anno_file.get_transcript_to_gene(),
@@ -224,7 +223,7 @@ class FileHandler(FileHandlerInterface):
 
     def __get_filetype(self, file: str) -> Filetype:
         file_type = Filetype.NONE
-        if re.search(r'\b.fa\b', file):
+        if re.search(r'\b.fa\b', file) or re.search(r'\b.fas\b', file):
             file_type = Filetype.FASTA
         if re.search(r'\b.fai\b', file):
             file_type = Filetype.FASTAINDEX

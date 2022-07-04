@@ -36,7 +36,7 @@ class AppHandler:
         def display_page(pathname) -> html:
             """Handles the different pages to display."""
             if pathname == '/page1':
-                return self.display.layout()
+                return self.display.get_layout_for_display()
             else:
                 return self.settings.get_layout_for_settings()
 
@@ -44,19 +44,19 @@ class AppHandler:
 
     def runapp(self, mode: bool):
         """This runs the app on the given Port"""
-        app.layout = self.get_layout(mode)
+        app.layout = self.__get_layout(mode)
         # This is needed, because callbacks are also called in other input_files.
         app.config.suppress_callback_exceptions = True
-        app.run_server(debug=True, port=self.port)
+        app.run_server(debug=False, port=self.port)
 
     @staticmethod
-    def pages() -> html.Div:
+    def __pages() -> html.Div:
         """This method provides the pages"""
         return html.Div([
             dcc.Location(id='url', refresh=False),
             html.Div(id='page-content')])
 
-    def get_layout(self, mode: bool) -> html.Div:
+    def __get_layout(self, mode: bool) -> html.Div:
         """
         Return the general layout for the webpage.
 
@@ -69,4 +69,4 @@ class AppHandler:
             black_or_white = {'backgroundColor': Color.WHITE_HTML.value, 'color': Color.BLACK_HTML.value}
 
         return html.Div(style=black_or_white,
-                        children=[dcc.Loading(self.pages(), type='circle')])
+                        children=[dcc.Loading(self.__pages(), type='circle')])

@@ -19,9 +19,9 @@ class Settings:
     """
 
     def __init__(self, component_handler):
-        self.handler = component_handler
+        self.component_controller = component_handler
         self.annotations = component_handler.get_annotations()
-        self.sequencing = component_handler.get_sequencing_files()
+        self.coverages = component_handler.get_coverage_files()
         self.genome = component_handler.get_genome()
         self.expression = component_handler.get_expression_files()
         self.descriptions = component_handler.get_description_files()
@@ -152,7 +152,7 @@ class Settings:
         ])
 
     def __get_annotation_gene_options(self) -> html:
-        if self.handler.dict_is_not_set():
+        if self.component_controller.dict_is_not_set():
             return html.Div([
                 html.Div(children=[
                     html.Hr(style=Line),
@@ -172,13 +172,13 @@ class Settings:
             ])
         return ""
 
-    def __get_sequencing_annotation(self) -> str:
-        if len(self.sequencing) >= 2:
-            return 'Data-files'
-        return 'Data-file'
+    def __get_coverage_annotation(self) -> str:
+        if len(self.coverages) >= 2:
+            return 'Coverage-files'
+        return 'Coverage-file'
 
     def __get_display_sequence_options(self) -> html.Div:
-        label = self.__get_sequencing_annotation()
+        label = self.__get_coverage_annotation()
         return html.Div([
             html.Div(children=[
                 html.Hr(style=Line),
@@ -188,7 +188,7 @@ class Settings:
                     options=[{'label': 'Select All', 'value': 'All'}],
                     value=[]
                 ),
-                dcc.Checklist(options={f'{i}': f'{i}' for i in self.sequencing},
+                dcc.Checklist(options={f'{i}': f'{i}' for i in self.coverages},
                               id='data'),
                 html.Div(id='sequence')
             ])])
@@ -200,7 +200,7 @@ class Settings:
             return html.Div([
                 html.Div(children=[
                     html.Hr(style=Line),
-                    html.H1('The genome is ' + self.genome.get_filename(),
+                    html.H1('This genome is set: \n ' + self.genome.get_filename(),
                             style={'color': '#1db992', 'textAlign': 'center'})
                 ])
             ])
@@ -209,7 +209,7 @@ class Settings:
             return html.Div([
                 html.Div(children=[
                     html.Hr(style=Line),
-                    html.H1('The genome is ' + self.genome.get_filename(),
+                    html.H1('This genome is set: \n' + self.genome.get_filename(),
                             style={'color': '#1db992', 'textAlign': 'center'})
                 ])
             ])

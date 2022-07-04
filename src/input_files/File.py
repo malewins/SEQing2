@@ -35,13 +35,13 @@ class FileInput:
                     nameField='gene',
                     color=colour)
 
-    def get_genes_for_annotation(self):
+    def get_genes_for_annotation(self) -> list[str]:
         if self.file_type in [Filetype.BED, Filetype.GTF, Filetype.GFF, Filetype.GFF, Filetype.GFF]:
             print([str(entry.name) for entry in BedTool(self.file_path)])
             return [str(entry.name) for entry in BedTool(self.file_path)]
         return None
 
-    def get_locus(self, gen):
+    def get_locus(self, gen) -> list[str]:
         """
         Return the position of the gen on the genome as json-Object for the igv-component.
 

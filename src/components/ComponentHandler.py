@@ -40,7 +40,7 @@ class Component:
             self.current_index_file = self.handler.get_specific_file(filename + '.fai')
         elif len(self.genome) != 0:
             self.current_genome_file = self.genome[0]
-            self.current_index_file = self.handler.get_genome(filename + '.fai')
+            self.current_index_file = self.handler.get_specific_file(self.current_genome_file.file_name + '.fai')
 
     def set_sequence_file(self, filename):
         """
@@ -93,13 +93,13 @@ class Component:
         """
         return self.handler.get_annotations()
 
-    def get_sequencing_files(self):
+    def get_coverage_files(self):
         """
-        Return all sequencing input_files type (BAM, BED4/6, WIG, bigWIG)
+        Return all coverage input_files type (BAM, BED4/6, WIG, bigWIG)
 
         :doc: input_files.FilesHandler.FileHandler.get_sequencing_files
         """
-        return self.handler.get_sequencing_files()
+        return self.handler.get_coverage_files()
 
     def get_selected_files(self) -> list[dict]:
         """
@@ -141,7 +141,7 @@ class Component:
         """
         if not self.current_index_file.is_empty():
             return self.current_index_file.get_serverpath()
-        raise NameError("No existing index File!")
+        raise NameError(self.current_genome_file.file_name + " corresponding index File is missing!")
 
     def get_expression_files(self) -> list[str]:
         """
