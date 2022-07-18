@@ -57,6 +57,11 @@ class Args:
         # add Port as Parameter
         self.parser.add_argument('-port', dest='port', help='''Choose a port on which the app should run. 
                                 For example -port 8050.''', type=int, default=8050)
+        # add Password as Parameter
+        self.parser.add_argument('-pwd', dest='pwd', help='''Set a general password for this session. Do not use
+        spaces between. There is no possibility to set the password to nothing.''', type=str, default='test')
+
+        # add experimental dark mode
         self.parser.add_argument('-dark', help='''Experimental Mode to display the data in a dark mode.''',
                                  action='store_true', default=False)
         self.parser.parse_args()
@@ -179,6 +184,12 @@ class Args:
         :rtype: int
         """
         return self.parser.parse_args().port
+
+    def get_pwd(self) -> str:
+        """
+        Return the password that was set, or the default password.
+        """
+        return self.parser.parse_args().pwd
 
     def get_mode(self) -> bool:
         """

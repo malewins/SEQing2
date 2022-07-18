@@ -9,6 +9,7 @@ from flask import send_from_directory
 from src.components import DisplayData, SetSettingsByUser
 from src.app.AppInterface import app, server
 from src.input_files.Colors import Color
+from dash_auth import BasicAuth
 
 
 class AppHandler:
@@ -20,11 +21,13 @@ class AppHandler:
     :param port: takes a port as int.
     """
 
-    def __init__(self, absolut_dir_path, component_handler, port, mode):
+    def __init__(self, absolut_dir_path, component_handler, port, mode, pwd):
         self.current_gene_options = component_handler.get_current_gene_dict()
         self.port = port
         self.settings = SetSettingsByUser.Settings(component_handler)
         self.display = DisplayData.Display(component_handler)
+        VALID_USERNAME_PASSWORD_PAIRS = {'user': pwd}
+        auth = BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
 
         @server.route('/tracks/<path:path>')
         def data(path) -> server:

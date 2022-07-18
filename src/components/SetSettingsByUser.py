@@ -4,10 +4,11 @@ from dash import dcc, html, Input, Output, State
 
 from src.input_files import File
 from src.app.AppInterface import app
+from src.input_files import Colors
 import base64
 
 """This File provides settings to display the specific data and not all data at once. This has a performance reason."""
-Line = {'textAlign': 'left', 'height': '5px', 'width': '1500px', 'backgroundColor': '#161618'}
+Line = {'textAlign': 'left', 'height': '5px', 'width': '1500px', 'backgroundColor': Colors.BLACK_HTML.value}
 center = {'textAlign': 'center'}
 
 
@@ -39,7 +40,7 @@ class Settings:
             :rtype: str
             """
             component_handler.set_annotation_file(value)
-            return f'You have selected {value}'
+            return f'You have selected: {value}'
 
         @app.callback(
             Output('annotation', 'value'),
@@ -64,7 +65,7 @@ class Settings:
             if value is not None:
                 self.set_sequence = True
                 self.__is_set_sequence()
-            return f'You have selected {value}'
+            return f'You have selected: {value}'
 
         @app.callback(
             Output('data', 'value'),
@@ -86,7 +87,7 @@ class Settings:
             :rtype: str
             """
             component_handler.set_expression_file(value)
-            return f'You have selected {value}'
+            return f'You have selected: {value}'
 
         @app.callback(
             Output('genome-chooser', 'children'),
@@ -100,7 +101,7 @@ class Settings:
             :rtype: str
             """
             component_handler.set_genome(value)
-            return f'You selected as genome {value}'
+            return f'You have selected: {value}'
 
         @app.callback(
             Output('output-danger', 'children'),
@@ -121,11 +122,10 @@ class Settings:
 
     @staticmethod
     def __get_img() -> html:
-        image_filename = Path('SEQing.png').resolve()  # current place of image
-        encoded_image = base64.b64encode(open(image_filename, 'rb').read())
+        image_filename = Path('src/app/assets/iSEQing.svg').resolve()  # current place of image
+        encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode()
         return html.Div(style={'textAlign': 'center'}, children=[
-            html.Img(src='data:image/png;base64,{}'.format(encoded_image.decode()),
-                     style={'width': '350px', 'height': '100px'})])
+            html.Img(src='data:image/svg+xml;base64,{}'.format(encoded_image))])
 
     def __get_annotations(self) -> str:
         if len(self.annotations) >= 2:

@@ -13,7 +13,7 @@ def __start_application(args):
         handler = FilesHandler.FileHandler(args)
         component_handler = ComponentHandler.Component(handler)
         app.AppHandler(pathlib.Path.absolute(args.get_absolut_path('dir')), component_handler, args.get_port(),
-                       args.get_mode())
+                       args.get_mode(), args.get_pwd())
     else:
         sys.stderr.write('error: No Argument was set.')
         args.parser.print_help()

@@ -41,7 +41,7 @@ class Display:
         def update_output(value: str) -> str:
             if not value:
                 raise PreventUpdate
-            return 'The coordinate of the Gene is : \n{}'.format(value)
+            return 'The coordinate of the gene is : \n{}'.format(value)
 
         @app.callback(
             Output('graph', 'children'),
